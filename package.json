@@ -1,0 +1,14 @@
+{
+	"name": "axe-import",
+	"title": "DB Model and Import Plugin for exhibitions",
+	"version": "1.0.0",
+	"homepage": "https://github.com/dmitri-ko/axe-import",
+	"main": "gulpfile.js",
+	"devDependencies": {
+		"del": "^6.0.0",
+		"gulp": "^4.0.2",
+		"gulp-watch": "^5.0.1",
+		"vinyl": "^2.2.1",
+		"gulp-flatten": "^0.4.0"
+	}
+}
