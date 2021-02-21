@@ -2,7 +2,7 @@
 /**
  * Post type Admin API file.
  *
- * @package WordPress Plugin Template/Includes
+ * @package Axe Import/Includes
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,6 +19,7 @@ class Axe_Import_Admin_API {
 	 */
 	public function __construct() {
 		add_action( 'save_post', array( $this, 'save_meta_boxes' ), 10, 1 );
+		add_action( 'wp_ajax_axe_get_posts', array( $this, 'ajax_get_posts' ), 10, 1 );
 	}
 
 	/**
@@ -353,4 +354,90 @@ class Axe_Import_Admin_API {
 		}
 	}
 
+	/**
+	 * Get posts for ajax query.
+	 *
+	 * @return void
+	 */
+	function ajax_get_posts( ) {
+        global $wpdb;
+        $return = [];
+		$return[ 'items' ] = [];
+
+		$search =  isset( $_REQUEST['q'] ) ? $_REQUEST['q'] : '';
+		$type   =  isset( $_REQUEST['post_type'] ) ? $_REQUEST['post_type'] : 'post';
+		$keywords = preg_split("/_/", $type);
+		if ( is_array($keywords) && 2 == count($keywords)  )
+        	$id_key = $keywords[1].'_id';
+		$args = array( 'post_type' => $type, 'posts_per_page' => -1, 'post_status' => 'publish' );
+        $is_search_posts = true;
+
+		if ( $search ){
+			$search_query = "SELECT ID FROM {$wpdb->prefix}posts
+							WHERE post_type = '{$type}' 
+							AND post_title LIKE %s";
+			$like = '%'.$search.'%';
+			$results = $wpdb->get_results($wpdb->prepare($search_query, $like), ARRAY_N);
+			foreach($results as $key => $array){
+				$quote_ids[] = $array[0];
+			}	
+			if ( isset($quote_ids) ){
+                $args['post__in'] = $quote_ids;
+			} else{
+				$is_search_posts = false;
+			}	
+		}
+        if ( $is_search_posts ){
+			$posts = get_posts( $args );
+			if( $posts ) {
+				foreach ( $posts as $post ) { 
+					$item          = [];
+					$item['id']    = $post->ID;
+					$item['title'] = get_the_title( $post );
+					$item['name']  = $post->post_name;
+					if( 'axe_image' == $type ){
+						$item['thumb'] = get_the_post_thumbnail_url( $post );
+					}
+					$meta = get_post_meta( $post->ID );
+					if ( $meta ){
+						foreach (array('artist_image','artwork_image','infos_image' ) as $img) {
+							 if( array_key_exists( $img, $meta)  && is_array( $meta[$img] )  && isset( $meta[$img][0] ) ) {
+                                 $img_id        = $this->get_post_id_by_meta_key_and_value('image_id', $meta[$img][0]);
+								 $item['thumb'] = get_the_post_thumbnail_url( $img_id );
+							 }
+							 	
+						}
+						if( array_key_exists( $id_key, $meta)  )
+							$item['id'] = $meta[$id_key][0];
+					}
+					$return[ 'items' ][] = $item;
+				}
+			}
+			wp_reset_postdata();	
+		}
+
+		echo json_encode($return);
+		wp_die(); // this is required to terminate immediately and return a proper response
+	}
+	
+	/**
+	 * Get post id from meta key and value
+	 * @param string $key
+	 * @param mixed $value
+	 * @return int|bool
+	 * @author David M&aring;rtensson <david.martensson@gmail.com>
+	 */
+	public function get_post_id_by_meta_key_and_value($key, $value) {
+		global $wpdb;
+		$meta = $wpdb->get_results("SELECT * FROM `".$wpdb->postmeta."` WHERE meta_key='".$wpdb->escape($key)."' AND meta_value='".$wpdb->escape($value)."'");
+		if (is_array($meta) && !empty($meta) && isset($meta[0])) {
+			$meta = $meta[0];
+		}		
+		if (is_object($meta)) {
+			return $meta->post_id;
+		}
+		else {
+			return false;
+		}
+	}	
 }

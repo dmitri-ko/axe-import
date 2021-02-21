@@ -110,7 +110,7 @@ class Axe_Import {
 	 */
 	public function __construct( $file = '', $version = '1.0.0' ) {
 		$this->_version = $version;
-		$this->_token   = 'Axe_Import';
+		$this->_token   = 'axe_import';
 
 		// Load plugin environment variables.
 		$this->file       = $file;
@@ -336,7 +336,7 @@ class Axe_Import {
 
 	//Image CPT registration
 	$args = array(
-		'supports'      => array( 'title', 'thumbnail'),
+		'supports'      => array( 'thumbnail'),
 		'menu_icon'     => 'dashicons-format-image',
 		'menu_position' => '',
 	);
@@ -347,7 +347,7 @@ class Axe_Import {
 								__( 'Images for exhibitions', 'axe-import' ), 
 								$args 
 							);
-	$prefix = 'img_';
+	$prefix = 'image_';
 	$config = array(
 		'id'             => $prefix.'meta_box',          // meta box id, unique per meta box
 		'title'          => __('Dimensions', 'axe-import'),          // meta box title
@@ -358,6 +358,7 @@ class Axe_Import {
 		'fields'         => array(),
 	);
 	$my_meta =  new Axe_Import_Metabox($config);
+	$my_meta->addText($prefix.'id',array('name'=> __('Key')));
 	//Width
 	$my_meta->addText($prefix.'width',array('name'=> __('Width')));
 	//Heght
@@ -390,8 +391,10 @@ class Axe_Import {
 		'fields'         => array(),
 	);
 	$my_meta =  new Axe_Import_Metabox($config);
+	$my_meta->addText($prefix.'id',array('name'=> __('Key')));
 	//Description
 	$my_meta->addTextArea($prefix.'description',array('name'=> __('Description')));
+	$my_meta->addPosts($prefix.'image',array('post_type' => 'axe_image', 'type' => 'ajax' ),array('name'=> __('Image', 'axe-import')));
 	//Finish Meta Box Declaration 
 	$my_meta->Finish();
 	//End of Infos CPT registration
@@ -420,12 +423,14 @@ class Axe_Import {
 		'fields'         => array(),
 	);
 	$my_meta =  new Axe_Import_Metabox($config);
+	$my_meta->addText($prefix.'id',array('name'=> __('Key')));
 	//Description
 	$my_meta->addText($prefix.'firstname',array('name'=> __('First Name'), 'group' => 'start'));
 	$my_meta->addText($prefix.'name',array('name'=> __('Name'), 'group' => 'end'));
 	$my_meta->addDate($prefix.'birth',array('name'=> __('Date of birth'), 'group' => 'start'));
 	$my_meta->addDate($prefix.'death',array('name'=> __('Date of death'), 'group' => 'end'));
 	$my_meta->addTextArea($prefix.'description',array('name'=> __('Description')));
+	$my_meta->addPosts($prefix.'image',array('post_type' => 'axe_image', 'type' => 'ajax' ),array('name'=> __('Image', 'axe-import')));
 	$repeater_fields = [];
 	$repeater_fields[] = $my_meta->addPosts($prefix.'artwork',array('post_type' => 'axe_artwork'),array('name'=> __('Artwork', 'axe-import')), true );
 	$my_meta->addRepeaterBlock($prefix.'re_',array(
@@ -462,13 +467,15 @@ class Axe_Import {
 		'fields'         => array(),
 	);
 	$my_meta =  new Axe_Import_Metabox($config);
+	$my_meta->addText($prefix.'id',array('name'=> __('Key')));
 	//Description
 	$my_meta->addText($prefix.'year',array('name'=> __('Year of establishment')));
-	$my_meta->addText($prefix.'artist',array('name'=> __('Artist')));
+	//$my_meta->addText($prefix.'artist',array('name'=> __('Artist')));
 	$my_meta->addTextArea($prefix.'description',array('name'=> __('Description')));
 	$my_meta->addText($prefix.'owner',array('name'=> __('Owner')));
+	$my_meta->addPosts($prefix.'image',array('post_type' => 'axe_image', 'type' => 'ajax' ),array('name'=> __('Image', 'axe-import')));
     $repeater_fields = [];
-	$repeater_fields[] = $my_meta->addPosts($prefix.'infos',array('post_type' => 'axe_infos'),array('name'=> __('Infos', 'axe-import')), true );
+	$repeater_fields[] = $my_meta->addPosts($prefix.'infos',array('post_type' => 'axe_infos', 'type' => 'ajax'),array('name'=> __('Infos', 'axe-import')), true );
 	$my_meta->addRepeaterBlock($prefix.'re_',array(
 		'inline'   => true, 
 		'name'     => __('Infos'),
@@ -503,6 +510,7 @@ class Axe_Import {
 		'fields'         => array(),
 	);
 	$my_meta =  new Axe_Import_Metabox($config);
+	$my_meta->addText($prefix.'id',array('name'=> __('Key')));
 	//Description
 	$my_meta->addTextArea($prefix.'description',array('name'=> __('Description')));
 	$repeater_fields = [];
@@ -541,13 +549,13 @@ class Axe_Import {
 		'fields'         => array(),
 	);
 	$my_meta =  new Axe_Import_Metabox($config);
+	$my_meta->addText($prefix.'id',array('name'=> __('Key')));
 	$my_meta->addDate($prefix.'start',array('name'=> __('Exhibition starts', 'axe-import'), 'group' => 'start'));
 	$my_meta->addDate($prefix.'end',array('name'=> __('Exhibition ends', 'axe-import'), 'group' => 'end'));
 	//Description
 	$my_meta->addTextArea($prefix.'description',array('name'=> __('Description', 'axe-import')));	
 	$repeater_fields = [];	
 	$repeater_fields[] = $my_meta->addPosts($prefix.'groups',array('post_type' => 'axe_group'),array('name'=> __('Group', 'axe-import')), true );
-	$repeater_fields[] = $my_meta->addText($prefix.'gr',array('name'=> __('G-', 'axe-import')), true );
 	$my_meta->addRepeaterBlock($prefix.'re_',array(
 		'inline'   => true, 
 		'name'     => __('Groups'),

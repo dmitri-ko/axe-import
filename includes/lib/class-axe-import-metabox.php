@@ -197,14 +197,14 @@ class Axe_Import_Metabox {
   public function check_field_select() {
     
     // Check if the field is an image or file. If not, return.
-    if ( ! $this->has_field( 'select' ))
+    if ( ! ( $this->has_field( 'select' ) || $this->has_field( 'posts' ) ))
       return;
-      $plugin_path = $this->SelfPath;
-      // Enqueu JQuery UI, use proper version.
+    $plugin_path = $this->SelfPath;
+    $suffix = '.min';
       
       // Enqueu JQuery select2 library, use proper version.
-      wp_enqueue_style('at-multiselect-select2-css', $plugin_path . '/js/select2/select2.css', array(), null);
-      wp_enqueue_script('at-multiselect-select2-js', $plugin_path . '/js/select2/select2.js', array('jquery'), false, true);
+    wp_enqueue_style('at-multiselect-select2-css', $plugin_path . '/js/select2/css/select2'.$suffix.'.css', array(), null);
+    wp_enqueue_script('at-multiselect-select2-js', $plugin_path . '/js/select2/js/select2'.$suffix.'.js', array('jquery'), false, true);
   }
 
   /**
@@ -388,7 +388,8 @@ class Axe_Import_Metabox {
            $mmm =  isset($me[$field['fields'][0]['id']])? $me[$field['fields'][0]['id']]: "";
            if ( in_array( $field['fields'][0]['type'], array('image','file') ) )
             $mmm = $c +1 ;
-           echo '<div class="at-repater-block">'.$mmm.'<br/><table class="repeater-table" style="display: none;">';
+           // echo '<div class="at-repater-block">'.$mmm.'<br/><table class="repeater-table" style="display: none;">';
+           echo '<div class="at-repater-block"><table class="repeater-table">';
            if ($field['inline']){
              echo '<tr class="at-inline" VALIGN="top">';
            }
@@ -415,11 +416,16 @@ class Axe_Import_Metabox {
         }
         echo '</table>';
         if ($field['sortable'])
-          echo '<span class="re-control"><img src="'.$plugin_path.'/images/move.png" alt="sort" title="sort" class="at_re_sort_handle" /></span>';
+          //echo '<span class="re-control"><img src="'.$plugin_path.'/images/move.png" alt="sort" title="sort" class="at_re_sort_handle" /></span>';
 
-        echo'
-        <span class="re-control at-re-toggle"><img src="'.$plugin_path.'/images/edit.png" alt="Edit" title="Edit"/></span> 
-        <span class="re-control"><img src="'.$plugin_path.'/images/remove.png" alt="'.__('Remove','mmb').'" title="'.__('Remove','mmb').'" class="remove-'.$field['id'].'"></span>
+/*           echo'
+          <span class="re-control at-re-toggle"><img src="'.$plugin_path.'/images/edit.png" alt="Edit" title="Edit"/></span> 
+          <span class="re-control"><img src="'.$plugin_path.'/images/remove.png" alt="'.__('Remove','mmb').'" title="'.__('Remove','mmb').'" class="remove-'.$field['id'].'"></span>
+          <span class="re-control-clear"></span></div>'; */
+        
+        echo '<span class="re-control"><span class="dashicons dashicons-move at_re_sort_handle" ></span></span>';
+        echo '
+        <span class="re-control"><span class="dashicons dashicons-remove remove-'.$field['id'].'"></span></span>
         <span class="re-control-clear"></span></div>';
         $c = $c + 1;
         }
@@ -461,7 +467,11 @@ class Axe_Import_Metabox {
       echo '</tr>';
     } 
     //echo '</table><img src="'.$plugin_path.'/images/remove.png" alt="'.__('Remove', 'mmb').'" title="'.__('Remove', 'mmb').'" class="remove-'.$field['id'].'"></div>';
-    echo '</table><span class="dashicons dashicons-remove remove-'.$field['id'].'"></span></div>';
+    echo '</table>';
+    echo '<span class="re-control"><span class="dashicons dashicons-move at_re_sort_handle" ></span></span>';
+    echo '<span class="re-control"><span class="dashicons dashicons-remove remove-btn remove-'.$field['id'].'"></span></span>
+    <span class="re-control-clear"></span></div>';
+
     $counter = 'countadd_'.$field['id'];
     $js_code = ob_get_clean ();
     $js_code = str_replace("\n","",$js_code);
@@ -476,19 +486,7 @@ class Axe_Import_Metabox {
             '.$counter.' = '.$counter.' + 1;
             jQuery(this).before(\''.$js_code.'\');            
             update_repeater_fields();
-            jQuery(".remove-'.$field['id'].'").on(\'click\', function() {
-              if (jQuery(this).parent().hasClass("re-control"))
-                jQuery(this).parent().parent().remove();
-              else
-                jQuery(this).parent().remove();
-              });
           });     
-          jQuery(".remove-'.$field['id'].'").on(\'click\', function() {
-            if (jQuery(this).parent().hasClass("re-control"))
-              jQuery(this).parent().parent().remove();
-            else
-              jQuery(this).parent().remove();
-            });
         });
         </script>';
     echo '<br/><style>
@@ -876,11 +874,31 @@ class Axe_Import_Metabox {
     $this->show_field_begin($field, $meta);
     $options = $field['options'];
     $posts = get_posts($options['args']);
+    $keywords = preg_split("/_/", $options['post_type']);
+		if ( is_array($keywords) && 2 == count($keywords)  )
+      $id_key = $keywords[1].'_id';
+          
     // checkbox_list
     if ('checkbox_list' == $options['type']) {
       foreach ($posts as $p) {
         echo "<input type='checkbox' ".( isset($field['style'])? "style='{$field['style']}' " : '' )." class='at-posts-checkbox".( isset($field['class'])? ' ' . $field['class'] : '' )."' name='{$field['id']}[]' value='$p->ID'" . checked(in_array($p->ID, $meta), true, false) . " /> $p->post_title<br/>";
       }
+    }
+    // ajax
+    elseif ( 'ajax' == $options['type'] ){
+        echo '<select class="at-posts-select-ajax" name="'.$field['id'].'" data-post-type="'.$options['post_type'].'">';
+        foreach ($posts as $p) {
+          $meta_data = get_post_meta( $p->ID, $id_key );
+          if ( is_array( $meta_data ) && isset($meta_data[0]))
+            $id = $meta_data[0];
+          else 
+            $id = $p->ID;
+          if ( in_array($id , $meta) ){
+            echo "<option value='".$id."'selected='selected'>".$p->post_title."</option>";
+          }
+           
+        }
+        echo '</select>';
     }
     // select
     else {
@@ -888,9 +906,20 @@ class Axe_Import_Metabox {
       if (isset($field['emptylabel']))
         echo '<option value="-1">'.(isset($field['emptylabel'])? $field['emptylabel']: __('Select ...','mmb')).'</option>';
       foreach ($posts as $p) {
-        echo "<option value='$p->ID'" . selected(in_array($p->ID, $meta), true, false) . ">$p->post_title</option>";
+        echo "<option value='$p->ID'" . selected(in_array($p->ID, $meta), true, false) . ">".$p->post_title."</option>";
       }
-      echo "</select>";
+      echo "</select>"; 
+      /*
+      echo '<ul class="post-list">';
+      foreach ($posts as $p) {
+        $li_class = in_array($p->ID, $meta) ? 'active' : '';
+        $post_url = get_edit_post_link( $p->ID );
+        if( 'active' == $li_class ) 
+          echo "<input type='hidden' name='{$field['id']}' value='{$p->ID}' >";
+        echo "<li id='$p->ID' class='" . $li_class . "'><a href='".$post_url."'>".$p->post_title."</a></li>";
+      }  
+      echo '</ul><!-- /.post-list -->';
+      */
     }
     
     $this->show_field_end($field, $meta);
