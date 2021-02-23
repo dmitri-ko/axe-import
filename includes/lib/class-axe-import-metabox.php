@@ -890,14 +890,32 @@ class Axe_Import_Metabox {
         foreach ($posts as $p) {
           $meta_data = get_post_meta( $p->ID, $id_key );
           if ( is_array( $meta_data ) && isset($meta_data[0]))
-            $id = $meta_data[0];
+              $id = $meta_data[0];
           else 
-            $id = $p->ID;
+             $id = $p->ID;
           if ( in_array($id , $meta) ){
-            echo "<option value='".$id."'selected='selected'>".$p->post_title."</option>";
-          }
-           
+            if( 'axe_image' == $options['post_type'] ){
+              $thumb = get_the_post_thumbnail_url( $p->ID, 'thumbnail' );
+            } else{
+              foreach (array('artist_image','artwork_image','infos_image' ) as $img) {
+                $img_meta = get_post_meta( $p->ID, $img );
+                if( $img_meta && is_array( $img_meta )  && isset( $img_meta[0] ) ) {
+                  $admin = new Axe_Import_Admin_API();
+                  $img_id = $admin->get_post_id_by_meta_key_and_value('image_id', $img_meta[0] );
+                  $thumb  = get_the_post_thumbnail_url( $img_id, 'thumbnail' );
+                }							 	
+              }
+            }
+            if (isset($thumb) && $thumb){
+               $option = "<option value='".$id."'selected='selected' thumb='".$thumb."'>".$p->post_title."</option>";
+            } else {
+              $option = "<option value='".$id."'selected='selected'>".$p->post_title."</option>";
+            }              
+          }           
         }
+        if ( !isset( $option ) )
+          $option = "<option value='".$meta[0]."'selected='selected'>".__("Item is not found")."</option>";  
+        echo $option;
         echo '</select>';
     }
     // select

@@ -378,6 +378,8 @@ jQuery(document).ready(function ($) {
   })()
   simplePanelmedia = simplePanelupload.getInstance();
   simplePanelmedia.hooks();
+
+
 });
 
 function formatItems (item) {
@@ -411,5 +413,13 @@ function formatItems (item) {
 }
 
 function formatItemSelection (item) {
-  return item.title || item.name || item.text || item.id;
+  var $content = "";
+  var text = item.title || item.name || item.text || item.id;
+  var thumb = item.thumb || item.element.getAttribute("thumb");
+  if (thumb){
+      $content = $("<span class = 'select-ajax'> <img src='"+thumb+"' class='select-ajax-image'/>"+text+"</span>");
+  }  else {
+    $content = text;
+  }
+  return $content;
 }

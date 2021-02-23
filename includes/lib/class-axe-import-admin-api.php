@@ -20,6 +20,8 @@ class Axe_Import_Admin_API {
 	public function __construct() {
 		add_action( 'save_post', array( $this, 'save_meta_boxes' ), 10, 1 );
 		add_action( 'wp_ajax_axe_get_posts', array( $this, 'ajax_get_posts' ), 10, 1 );
+		add_filter( 'wpallimport_xml_row', array( $this, 'convert_data_before_import' ), 10, 1 );
+		add_action('pmxi_saved_post', array( $this, 'convert_repeater_data' ), 10, 1);
 	}
 
 	/**
@@ -174,11 +176,13 @@ class Axe_Import_Admin_API {
 
 			case 'color':
 				//phpcs:disable
-				?><div class="color-picker" style="position:relative;">
-					<input type="text" name="<?php esc_attr_e( $option_name ); ?>" class="color" value="<?php esc_attr_e( $data ); ?>" />
-					<div style="position:absolute;background:#FFF;z-index:99;border-radius:100%;" class="colorpicker"></div>
-				</div>
-				<?php
+				?>
+<div class="color-picker" style="position:relative;">
+	<input type="text" name="<?php esc_attr_e( $option_name ); ?>"
+		class="color" value="<?php esc_attr_e( $data ); ?>" />
+	<div style="position:absolute;background:#FFF;z-index:99;border-radius:100%;" class="colorpicker"></div>
+</div>
+<?php
 				//phpcs:enable
 				break;
 
@@ -359,7 +363,7 @@ class Axe_Import_Admin_API {
 	 *
 	 * @return void
 	 */
-	function ajax_get_posts( ) {
+	public function ajax_get_posts( ) {
         global $wpdb;
         $return = [];
 		$return[ 'items' ] = [];
@@ -396,16 +400,16 @@ class Axe_Import_Admin_API {
 					$item['title'] = get_the_title( $post );
 					$item['name']  = $post->post_name;
 					if( 'axe_image' == $type ){
-						$item['thumb'] = get_the_post_thumbnail_url( $post );
+						$item['thumb'] = get_the_post_thumbnail_url( $post, 'thumbnail' );
 					}
 					$meta = get_post_meta( $post->ID );
+					$item['url'] = get_edit_post_link(  $post->ID );
 					if ( $meta ){
 						foreach (array('artist_image','artwork_image','infos_image' ) as $img) {
 							 if( array_key_exists( $img, $meta)  && is_array( $meta[$img] )  && isset( $meta[$img][0] ) ) {
                                  $img_id        = $this->get_post_id_by_meta_key_and_value('image_id', $meta[$img][0]);
-								 $item['thumb'] = get_the_post_thumbnail_url( $img_id );
-							 }
-							 	
+								 $item['thumb'] = get_the_post_thumbnail_url( $img_id, 'thumbnail' );
+							 }							 	
 						}
 						if( array_key_exists( $id_key, $meta)  )
 							$item['id'] = $meta[$id_key][0];
@@ -440,4 +444,90 @@ class Axe_Import_Admin_API {
 			return false;
 		}
 	}	
+
+	/**
+	 * WP AllImport Data modification before the import
+	 * 
+	 * @param object $node
+	 * @return object
+	 */	
+	public function convert_data_before_import( $node ){
+		//foreach ($node as $elem){
+			$img 	  = $node->xpath( 'data[1]' );
+			$filename = $node->xpath( '_id[1]' );
+			if( $img ){
+				$base64 = $img[0]->__toString();
+				if ( !empty( $base64 ) ) {
+					if ( $filename  ) {
+						$file = $filename[0]->__toString();
+						if ( !empty( $file ) ){
+							$image_file = $this->base64_to_image( $base64, $file );
+							if ( $image_file )
+								$node->addChild('img_file', $image_file);
+						}
+					}                  
+				}
+			}
+		//}
+        return $node;
+	}
+
+	public function base64_to_image( $b64, $filename ){
+		// Obtain the original content (usually binary data)
+		$bin = base64_decode($b64);
+
+		// Gather information about the image using the GD library
+		$size = getImageSizeFromString($bin);
+
+		// Check the MIME type to be sure that the binary data is an image
+		if (empty($size['mime']) || strpos($size['mime'], 'image/') !== 0) {
+
+            return;
+		}
+
+		// Mime types are represented as image/gif, image/png, image/jpeg, and so on
+		// Therefore, to extract the image extension, we subtract everything after the “image/” prefix
+		$ext = substr($size['mime'], 6);
+
+		// Make sure that you save only the desired file extensions
+		if (!in_array($ext, ['png', 'gif', 'jpeg'])) {
+
+            return;
+		}
+
+		// Specify the location where you want to save the image
+		$img_file = $filename.'.'.$ext;
+		$upload_dir = wp_get_upload_dir();
+        $file_path = $upload_dir['basedir'].'/wpallimport/files/'.$img_file;
+		$bytes = file_put_contents($file_path , $bin);
+        if ( false !== $bytes )
+			return $img_file;
+
+
+        return;
+	}
+
+	public function convert_repeater_data( $id ){
+        $post_type = get_post_type($id);
+		$keywords = preg_split("/_/", $post_type);
+		if ( is_array($keywords) && 2 == count($keywords)  )
+      		$id_key = $keywords[1].'_re_';
+		$value = get_post_meta($id, $id_key, true);
+		if( $value ){
+            $chunks = explode(':', $value);
+			if ( is_array($chunks) && 2 == count($chunks) ){
+                $key = $chunks[0];
+				$values = explode(',', $chunks[1]);
+				foreach ($values as $k => $v) {
+					if ( trim($v) )
+						$meta[] = [ $key => trim($v) ];
+				}
+				if (isset($meta) && is_array($meta))
+					update_post_meta($id, $id_key,  $meta  );
+				else {
+					delete_post_meta($id, $id_key );
+				}					
+			}
+		}
+	}
 }
