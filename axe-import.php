@@ -28,6 +28,7 @@ require_once 'includes/class-axe-import-settings.php';
 // Load plugin libraries.
 require_once 'includes/lib/class-axe-import-admin-api.php';
 require_once 'includes/lib/class-axe-import-post-type.php';
+require_once 'includes/lib/class-axe-import-simplexmlelement.php';
 require_once 'includes/lib/class-axe-import-taxonomy.php';
 require_once 'includes/lib/class-axe-import-metabox.php';
 
