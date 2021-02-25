@@ -415,7 +415,10 @@ function formatItems (item) {
 function formatItemSelection (item) {
   var $content = "";
   var text = item.title || item.name || item.text || item.id;
-  var thumb = item.thumb || item.element.getAttribute("thumb");
+  var thumb = item.thumb;
+  if (! thumb && item.element ) {
+    thumb = item.element.getAttribute("thumb");
+  }
   if (thumb){
       $content = $("<span class = 'select-ajax'> <img src='"+thumb+"' class='select-ajax-image'/>"+text+"</span>");
   }  else {

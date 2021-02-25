@@ -25,14 +25,14 @@ const path = {
         img:   'build/assets/images/',
         fonts: 'build/assets/fonts/',
         php:  'build/',
-        doc:    'build/Documents/',
+        doc:   'build/Documents/',
     },
     src: { //Пути откуда брать исходники
         js: 'assets/js/*.js',//В стилях и скриптах нам понадобятся только main файлы
         img: 'assets/images/**/*.*', //Синтаксис img/**/*.* означает - взять все файлы всех расширений из папки и из вложенных каталогов
         style: 'assets/css/**/*.scss',
         fonts: 'assets/fonts/**/*.*',
-        php: ['**/*.php','readme.*' ],
+        php: ['**/*.php','readme.*', 'lang/**/*.mo' ],
         doc: '/Documents/**/*.*',
         plugin: 'build/**/*.*',
     },    

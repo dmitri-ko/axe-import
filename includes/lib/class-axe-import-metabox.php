@@ -512,9 +512,9 @@ class Axe_Import_Metabox {
    * @since 1.0
    * @access public
    */
-  public function show_field_begin( $field, $meta) {
+  public function show_field_begin( $field, $meta, $is_labeled = true) {
     echo "<td class='at-field'".(($this->inGroup === true)? " valign='top'": "").">";
-    if ( $field['name'] != '' || $field['name'] != FALSE ) {
+    if ( ( $field['name'] != '' || $field['name'] != false )  && $is_labeled ) {
       echo "<div class='at-label'>";
         echo "<label for='{$field['id']}'>{$field['name']}</label>";
       echo "</div>";
@@ -871,12 +871,9 @@ class Axe_Import_Metabox {
     global $post;
     
     if (!is_array($meta)) $meta = (array) $meta;
-    $this->show_field_begin($field, $meta);
+    $this->show_field_begin($field, $meta, false );
     $options = $field['options'];
     $posts = get_posts($options['args']);
-    $keywords = preg_split("/_/", $options['post_type']);
-		if ( is_array($keywords) && 2 == count($keywords)  )
-      $id_key = $keywords[1].'_id';
           
     // checkbox_list
     if ('checkbox_list' == $options['type']) {
@@ -888,23 +885,21 @@ class Axe_Import_Metabox {
     elseif ( 'ajax' == $options['type'] ){
         echo '<select class="at-posts-select-ajax" name="'.$field['id'].'" data-post-type="'.$options['post_type'].'">';
         foreach ($posts as $p) {
-          $meta_data = get_post_meta( $p->ID, $id_key );
+          $meta_data = get_post_meta( $p->ID, '_id' );
           if ( is_array( $meta_data ) && isset($meta_data[0]))
               $id = $meta_data[0];
           else 
              $id = $p->ID;
-          if ( in_array($id , $meta) ){
+          if ( in_array($id , $meta) ) {
             if( 'axe_image' == $options['post_type'] ){
               $thumb = get_the_post_thumbnail_url( $p->ID, 'thumbnail' );
             } else{
-              foreach (array('artist_image','artwork_image','infos_image' ) as $img) {
-                $img_meta = get_post_meta( $p->ID, $img );
+                $img_meta = get_post_meta( $p->ID, '_imageID' );
                 if( $img_meta && is_array( $img_meta )  && isset( $img_meta[0] ) ) {
                   $admin = new Axe_Import_Admin_API();
-                  $img_id = $admin->get_post_id_by_meta_key_and_value('image_id', $img_meta[0] );
+                  $img_id = $admin->get_post_id_by_meta_key_and_value('_id', $img_meta[0] );
                   $thumb  = get_the_post_thumbnail_url( $img_id, 'thumbnail' );
                 }							 	
-              }
             }
             if (isset($thumb) && $thumb){
                $option = "<option value='".$id."'selected='selected' thumb='".$thumb."'>".$p->post_title."</option>";

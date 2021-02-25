@@ -13,6 +13,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Admin API class.
  */
 class Axe_Import_Admin_API {
+	
+	/**
+	 * The single instance of RapidAddon.
+	 *
+	 * @var     object
+	 * @access  protected
+	 * @since   1.0.0
+	 */
+	protected $add_on;
 
 	/**
 	 * Constructor function
@@ -20,9 +29,76 @@ class Axe_Import_Admin_API {
 	public function __construct() {
 
 		add_action( 'wp_ajax_axe_get_posts', array( $this, 'ajax_get_posts' ), 10, 1 );
-		add_filter( 'wpallimport_xml_row', array( $this, 'convert_data_before_import' ), 10, 1 );
 		add_action('pmxi_saved_post', array( $this, 'convert_repeater_data' ), 10, 3);
 		add_action( 'pmxi_before_xml_import', array( $this, 'pmxi_before_xml_import' ), 10, 1 );
+		add_filter( 'update_post_metadata', array( $this, 'delete_empty_meta'), 10, 5 );
+		add_filter( 'wp_all_import_is_post_to_create', array( $this, 'skip_unknown_posts' ), 10, 3 );
+		add_filter( 'wpallimport_xml_row', array( $this, 'convert_data_before_import' ), 10, 1 );
+		add_filter('pmxi_custom_field', array( $this, 'keep_existing_if_empty'), 10, 6);
+
+		// Define the add-on
+		$this->add_on = new RapidAddon( 'Axe Import Add-On', 'axe-import_addon' );
+		
+		// Define add-on fields
+		$this->add_on->add_field('_id', __('ID', 'axe-import'), 'text'); 
+		
+		$this->add_on->add_options(
+			null,
+			__('General Settings','axe-import'), 
+			array(
+				$this->add_on->add_field('_description', __('Description', 'axe-import'), 'text'),
+				$this->add_on->add_field('_imageID', __('Image ID', 'axe-import'), 'text'),
+			)
+		);
+
+
+		$this->add_on->add_options(
+				null,
+				__('Image Settings','axe-import'), 
+				array(
+					$this->add_on->add_field('_width', __('Width', 'axe-import'), 'text'),
+					$this->add_on->add_field('_height', __('Height', 'axe-import'), 'text'),
+					$this->add_on->add_field('_error', __('Error', 'axe-import'), 'text'),
+				)
+		);
+
+		$this->add_on->add_options(
+			null,
+			__('Artist Settings','axe-import'), 
+			array(
+				$this->add_on->add_field('_firstname', __('First Name', 'axe-import'), 'text'),
+				$this->add_on->add_field('_name', __('Name', 'axe-import'), 'text'),
+				$this->add_on->add_field('_birth', __('Birth', 'axe-import'), 'text'),
+				$this->add_on->add_field('_death', __('Death', 'axe-import'), 'text'),
+			)
+		);
+
+
+		$this->add_on->add_options(
+			null,
+			__('Artwork Settings', 'axe-import'), 
+			array(
+				$this->add_on->add_field('_year', __('Year of establishment', 'axe-import'), 'text'),
+				$this->add_on->add_field('_artistID', __('Artist ID', 'axe-import'), 'text'),
+				$this->add_on->add_field('_owner', __('Owner', 'axe-import'), 'text'),
+			)
+		);
+
+		$this->add_on->add_options(
+			null,
+			__('Exhibition Settings','axe-import'), 
+			array(
+				$this->add_on->add_field('_start', __('Exhibition Starts', 'axe-import'), 'text'),
+				$this->add_on->add_field('_end', __('Exhibition Ends', 'axe-import'), 'text'),
+			)
+		);
+
+		$this->add_on->set_import_function([ $this, 'import' ]);
+		add_action( 'admin_init', [ $this, 'init' ] );
+	}
+
+	protected function logger($m) {
+		echo "<div class='progress-msg'>[". date("H:i:s") ."] $m</div>\n";flush();
 	}
 
 	/**
@@ -37,9 +113,6 @@ class Axe_Import_Admin_API {
 
 		$search =  isset( $_REQUEST['q'] ) ? $_REQUEST['q'] : '';
 		$type   =  isset( $_REQUEST['post_type'] ) ? $_REQUEST['post_type'] : 'post';
-		$keywords = preg_split("/_/", $type);
-		if ( is_array($keywords) && 2 == count($keywords)  )
-        	$id_key = $keywords[1].'_id';
 		$args = array( 'post_type' => $type, 'posts_per_page' => -1, 'post_status' => 'publish' );
         $is_search_posts = true;
 
@@ -72,14 +145,12 @@ class Axe_Import_Admin_API {
 					$meta = get_post_meta( $post->ID );
 					$item['url'] = get_edit_post_link(  $post->ID );
 					if ( $meta ){
-						foreach (array('artist_image','artwork_image','infos_image' ) as $img) {
-							 if( array_key_exists( $img, $meta)  && is_array( $meta[$img] )  && isset( $meta[$img][0] ) ) {
-                                 $img_id        = $this->get_post_id_by_meta_key_and_value('image_id', $meta[$img][0]);
-								 $item['thumb'] = get_the_post_thumbnail_url( $img_id, 'thumbnail' );
-							 }							 	
-						}
-						if( array_key_exists( $id_key, $meta)  )
-							$item['id'] = $meta[$id_key][0];
+						if( array_key_exists( 'imageID', $meta)  && is_array( $meta['imageID'] )  && isset( $meta['imageID'][0] ) ) {
+							$img_id        = $this->get_post_id_by_meta_key_and_value('_id', $meta['imageID'][0]);
+							$item['thumb'] = get_the_post_thumbnail_url( $img_id, 'thumbnail' );
+						}	
+						if( array_key_exists( '_id', $meta)  )
+							$item['id'] = $meta['_id'][0];
 					}
 					$return[ 'items' ][] = $item;
 				}
@@ -119,24 +190,25 @@ class Axe_Import_Admin_API {
 	 * @return object
 	 */	
 	public function convert_data_before_import( $node ){
-		//foreach ($node as $elem){
-			$img 	  = $node->xpath( 'data[1]' );
-			$filename = $node->xpath( '_id[1]' );
-			if( $img ){
-				$base64 = $img[0]->__toString();
-				if ( !empty( $base64 ) ) {
-					if ( $filename  ) {
-						$file = $filename[0]->__toString();
-						if ( !empty( $file ) ){
-							$image_file = $this->base64_to_image( $base64, $file );
-							if ( $image_file )
-								$node->addChild('img_file', $image_file);
-						}
-					}                  
-				}
+		$img 	  = $node->xpath( 'data[1]' );
+		$filename = $node->xpath( '_id[1]' );
+		if( $img ){
+			$base64 = $img[0]->__toString();
+			if ( !empty( $base64 ) ) {
+				if ( $filename  ) {
+					$file = $filename[0]->__toString();
+					if ( !empty( $file ) ){
+						$image_file = $this->base64_to_image( $base64, $file );
+						if ( 'OK' == $image_file['status'] )
+							$node->addChild('img_file', $image_file['filename']);
+						else {
+							$node->addChild('img_file_error', $image_file['message']);
+						}	
+					}
+				}                  
 			}
-		//}
-        return $node;
+		}
+	return $node;
 	}
 
 	public function base64_to_image( $b64, $filename ){
@@ -149,7 +221,9 @@ class Axe_Import_Admin_API {
 		// Check the MIME type to be sure that the binary data is an image
 		if (empty($size['mime']) || strpos($size['mime'], 'image/') !== 0) {
 
-            return;
+            $return ['status']  = 'Error';
+			$return ['message'] = __("Binary data isn't an image", 'axe-import');
+            return $return;
 		}
 
 		// Mime types are represented as image/gif, image/png, image/jpeg, and so on
@@ -159,7 +233,9 @@ class Axe_Import_Admin_API {
 		// Make sure that you save only the desired file extensions
 		if (!in_array($ext, ['png', 'gif', 'jpeg'])) {
 
-            return;
+            $return ['status']  = 'Error';
+			$return ['message'] = __('Wrong image format', 'axe-import');
+            return $return;
 		}
 
 		// Specify the location where you want to save the image
@@ -167,35 +243,43 @@ class Axe_Import_Admin_API {
 		$upload_dir = wp_get_upload_dir();
         $file_path = $upload_dir['basedir'].'/wpallimport/files/'.$img_file;
 		$bytes = file_put_contents($file_path , $bin);
-        if ( false !== $bytes )
-			return $img_file;
-
-
-        return;
+        if ( false !== $bytes ){
+			$return ['status']  = 'OK';
+			$return ['filename'] = $img_file;
+			return $return;
+		}
+		$return ['status']  = 'Error';
+		$return ['message'] = __('Image file creation failed.', 'axe-import');
+		return $return;
 	}
 
 	public function convert_repeater_data( $id, $xml_node, $is_update  ){
-        $post_type = get_post_type($id);
+		$post_type_a  = $xml_node->xpath('./post_type');
+		if( empty ( $post_type_a ) ) {
+            return;
+		}
+        $post_type = $post_type_a[0]->__toString();;
+        set_post_type($id, $post_type);
         switch ($post_type) {
 			case 'axe_artist':
                 $elems        = $xml_node->xpath('artworksID/item_3');
                 $custom_field = 'artist_re_';
-                $custom_value = 'artist_artwork';
+                $custom_value = '_artworkID';
 				break;
 			case 'axe_group':
 				$elems        = $xml_node->xpath('artworksID/item_3');
 				$custom_field = 'group_re_';
-				$custom_value = 'group_artwork';
+				$custom_value = '_artworkID';
 				break;
 			case 'axe_artwork':
 				$elems        = $xml_node->xpath('infosID/item_3');
 				$custom_field = 'artwork_re_';
-				$custom_value = 'artwork_infos';
+				$custom_value = '_infosID';
 				break;
 			case 'axe_exhibition':
 				$elems        = $xml_node->xpath('groupsID/item_2');
 				$custom_field = 'exhibition_re_';
-				$custom_value = 'exhibition_group';
+				$custom_value = '_groupID';
 				break;																
 			default:
 				return;
@@ -207,9 +291,17 @@ class Axe_Import_Admin_API {
 		if (isset($meta) && is_array($meta)){
 			update_post_meta($id, $custom_field,  $meta  );
 		}	
+
 	}
 
-	public function pmxi_before_xml_import( $importID ) {
+    /**
+     * WP AllImport Data modification before the import
+     * 
+     * @param int $importID ID of the import
+     * 
+     * @return none
+     */
+    public function pmxi_before_xml_import( $importID ) {
 
 		// Retrieve import object.
 		$import = new PMXI_Import_Record();
@@ -218,62 +310,169 @@ class Axe_Import_Admin_API {
 		// Ensure import object is valid.
 		if ( ! $import->isEmpty() ) {
 	
-			// Retrieve history file object.
-			$history_file = new PMXI_File_Record();
-			$history_file->getBy( 'import_id', $importID );
-	
-			// Ensure history file object is valid.
-			if ( ! $history_file->isEmpty() ) {
-	
 				// Retrieve import file path.
-				$file_to_import = wp_all_import_get_absolute_path( $history_file->path );
+				$file_to_import = wp_all_import_get_absolute_path( PMXI_Plugin::$session->filePath );
 	
 				// Load import file as SimpleXml.
                 $file = simplexml_load_file($file_to_import, 'Axe_Import_SimpleXMLElement' );
 	
-				// Check if Group is a child of Exhibition.
-				$query = $file->xpath( "//exhibition/groupsID[1]/item_2[1]/group[1]" );
+				// Check if post_type is added to items_1
+				$query = $file->xpath( "//item_1[1]/post_type[1]" );
 				if ( ! empty( $query ) ) {
-	
 					// If it is, do nothing.
 					return;
 	
 				}
 	
-				// Get Group value.
-			//	$iquery = $file->xpath( "//Apartment/Status[1]" );
-	
-				// Ensure value isn't empty.
-			//	if ( ! empty( $iquery ) ) {
-	
-					// Value of status as string.
-			//		$status = $iquery[0]->__toString();
+	                // Adding item_1 to exhibition
+					$exhibition = $file->xpath( "//exhibition" );
+					if ( empty( $exhibition ) ) {
+
+                        return;
+					}
+					// Check if exibition already prepared
+					$exhibition_item = $file->xpath( "//exhibition/item_1" );
+					if ( empty( $exhibition_item  ) ) {
+						// Do the magic
+                        $exhibition_item = new Axe_Import_SimpleXMLElement('<item_1></item_1>');
+                        $exhibition_item->appendXML( $exhibition[0] );	
+                        $exhibition[0]->appendXML( $exhibition_item->exhibition, 'item_1' );					
+					}
 	
 					// Target path.
-					$new_query = $file->xpath( "./exhibition/groupsID/item_2" );
+					$new_query = $file->xpath( "//item_1" );
 	
 					// Ensure path is valid.
-					if ( ! empty( $new_query ) ) {
-	
+					if ( ! empty( $new_query ) ) {						
 						// Process each Procurement element.
 						foreach ( $new_query as $record ) {						
-							// Ensure this element doesn't have Status.
-							if ( ! isset( $record->group ) ) {
-								$iquery = $file->xpath( '//groups/item_1[_id[1] = "'.$record[0].'"]' );
-								if ( ! empty( $iquery ) ) {
+							$parent = $file->xpath( '//item_1[_id[1] = "'.$record->_id.'"]/..' );	
+							if ( ! isset( $record->post_type )  && ! empty( $parent ) ) {
+	                            $parent_type = $parent[0]->getName();
+								switch ($parent_type) {
+									case 'exhibition':
+                                        $post_type = 'axe_exhibition';
+										break;
+									case 'groups':
+                                        $post_type = 'axe_group';
+										break;
+									case 'artworks':
+										$post_type = 'axe_artwork';
+										break;
+									case 'artists':
+										$post_type = 'axe_artist';
+										break;
+									case 'infos':
+										$post_type = 'axe_infos';
+										break;	
+									case 'images':
+										$post_type = 'axe_image';
+										break;																																
+									default:
+                                        $post_type = 'unknown';
+										break;
+								}
 								
-									$record->appendXML(  $iquery[0], 'group' );
+								$record->addChild( 'post_type', $post_type );
+								if ( !$record->title ){
+									if ( 'axe_image' == $post_type  ) {
+										$record->addChild( 'title', __('Image id: ', 'axe-import').$record->_id );
+									} elseif( 'axe_artist' == $post_type ) {
+										$record->addChild( 'title', $record->firstname.' '.$record->name );
+									} else{
+                                        $record->addChild('title', $record->_id);
+									}
 								}
 							}
 						}
 	
 						// Save updated file.
 						$updated_file = $file->asXML( $file_to_import );
-	
+						$import->count = count( $file->xpath( "//item_1" ) );
+						PMXI_Plugin::$session->set('count', $import->count );
+                        $import->update();
 					}
-				}
-			//}
 		}
 	}
+
+    /**
+     * Skip unknown post type
+     * 
+     * @param bool $continue_import 
+	 * @param int $post_id 
+	 * @param object $xml_node 
+     * @param int $import_id_id 
+	 * 
+     * @return bool
+     */
+	public function skip_unknown_posts( $continue_import, $data, $import_id ) {
+	   
+	   $this->logger( __('Unsupported post type. Row skipped', 'axe-import') );
+	   
+	   if ( array_key_exists( 'post_type', $data ) && 'unknown' == $data['post_type'] ) {
+           return false;
+	   } else{
+
+           return true;
+	   }
+	}	
+
+	public function delete_empty_meta($check, $object_id, $meta_key, $meta_value, $prev_value) {
+        $custom_fields = [ '_id', '_description', '_width', '_height', '_imageID', '_start', '_end', '_year',
+		'_artistID', '_owner', '_firstname', '_name', '_birth', '_death', '_error' ];
+		if( in_array( $meta_key, $custom_fields )  && empty(  $meta_value )) {
+			delete_post_meta($object_id, $meta_key, $prev_value);
+			return true; //stop update
+		}
+		
+		return null; //do update 
+	}
 	
+	public function keep_existing_if_empty($value, $post_id, $key, $original_value, $existing_meta, $import_id){
+        // Check if it has a value.
+        if (empty($value)) {
+            // If empty, use the existing value.
+            $value = isset($existing_meta[$key][0]) ? $existing_meta[$key][0] : $value;
+
+        }
+    return $value;
+
+	}
+
+	public function import( $post_id, $data, $import_options, $article ) { 
+
+        $properties = [ '_id', '_description', '_imageID', 
+						'_firstname', '_name', '_birth',
+						'_death',  '_year', '_artistID',
+						'_owner', '_start', '_end',
+						'_width', '_height', '_error'
+					];
+        
+		foreach ($properties as $property ) {
+			if ( $this->add_on->can_update_meta( $property, $import_options ) && !empty( $data[$property] ) ) {
+				update_post_meta( $post_id, $property, $data[$property] );
+				$this->logger( __('Assigned value '.$data[$property].' to '.$property.' property', 'axe-import')  );
+			}
+		}			
+	}
+
+	public function init() {
+
+        if ( function_exists('is_plugin_active') ) {
+            
+            // Display this notice if neither the free or pro version of the Yoast plugin is active.
+            if ( ! is_plugin_active( 'wp-all-import/plugin.php' ) && ! is_plugin_active( 'wp-all-import-pro/wp-all-import-pro.php' ) ) {
+                // Specify a custom admin notice.
+                $this->add_on->admin_notice(
+                    __('The Axe Import Add-On requires WP All Import <a href="http://wordpress.org/plugins/wp-all-import" target="_blank">Free</a> and the <a href="https://yoast.com/wordpress/plugins/seo/">Yoast WordPress SEO</a> plugin.', 'axe-import' )
+                );
+            }
+            
+            // Only run this add-on if the free or pro version of the Yoast plugin is active.
+            if ( is_plugin_active( 'wp-all-import/plugin.php' ) || is_plugin_active( 'wp-all-import-pro/wp-all-import-pro.php' ) ) {
+                $this->add_on->run();
+            }
+        }
+	
+	}
 }

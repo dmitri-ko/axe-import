@@ -31,6 +31,7 @@ require_once 'includes/lib/class-axe-import-post-type.php';
 require_once 'includes/lib/class-axe-import-simplexmlelement.php';
 require_once 'includes/lib/class-axe-import-taxonomy.php';
 require_once 'includes/lib/class-axe-import-metabox.php';
+require_once 'includes/lib/rapid-addon.php';
 
 /**
  * Returns the main instance of Axe_Import to prevent the need to use globals.
