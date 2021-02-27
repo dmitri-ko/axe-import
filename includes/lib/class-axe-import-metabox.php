@@ -328,7 +328,7 @@ class Axe_Import_Metabox {
     $this->inGroup = false;
     global $post;
 
-    wp_nonce_field( basename(__FILE__), 'Axe_Import_Metabox_nonce' );
+    wp_nonce_field( basename(__FILE__), 'axe_import_metabox_nonce' );
     echo '<table class="form-table">';
     foreach ( $this->_fields as $field ) {
       $field['multiple'] = isset($field['multiple']) ? $field['multiple'] : false;
@@ -364,7 +364,7 @@ class Axe_Import_Metabox {
   /**
    * Show Repeater Fields.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public
@@ -507,7 +507,7 @@ class Axe_Import_Metabox {
   /**
    * Begin Field.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public
@@ -524,7 +524,7 @@ class Axe_Import_Metabox {
   /**
    * End Field.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public 
@@ -539,7 +539,7 @@ class Axe_Import_Metabox {
   /**
    * Show Field Text.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public
@@ -553,7 +553,7 @@ class Axe_Import_Metabox {
   /**
    * Show Field number.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public
@@ -570,7 +570,7 @@ class Axe_Import_Metabox {
   /**
    * Show Field code editor.
    *
-   * @param string $field 
+   * @param array $field 
    * @author Ohad Raz
    * @param string $meta 
    * @since 2.1
@@ -586,7 +586,7 @@ class Axe_Import_Metabox {
   /**
    * Show Field hidden.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string|mixed $meta 
    * @since 0.1.3
    * @access public
@@ -600,7 +600,7 @@ class Axe_Import_Metabox {
   /**
    * Show Field Paragraph.
    *
-   * @param string $field 
+   * @param array $field 
    * @since 0.1.3
    * @access public
    */
@@ -613,7 +613,7 @@ class Axe_Import_Metabox {
   /**
    * Show Field Textarea.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public
@@ -627,7 +627,7 @@ class Axe_Import_Metabox {
   /**
    * Show Field Select.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public
@@ -650,7 +650,7 @@ class Axe_Import_Metabox {
   /**
    * Show Radio Field.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public 
@@ -670,7 +670,7 @@ class Axe_Import_Metabox {
   /**
    * Show Checkbox Field.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public
@@ -687,7 +687,7 @@ class Axe_Import_Metabox {
   /**
    * Show Wysiwig Field.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public
@@ -710,7 +710,7 @@ class Axe_Import_Metabox {
   /**
    * Show File Field.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public
@@ -781,7 +781,7 @@ class Axe_Import_Metabox {
   /**
    * Show Color Field.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public
@@ -806,7 +806,7 @@ class Axe_Import_Metabox {
   /**
    * Show Checkbox List Field
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public
@@ -833,7 +833,7 @@ class Axe_Import_Metabox {
   /**
    * Show Date Field.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public
@@ -847,7 +847,7 @@ class Axe_Import_Metabox {
   /**
    * Show time field.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public 
@@ -862,7 +862,7 @@ class Axe_Import_Metabox {
    /**
    * Show Posts field.
    * used creating a posts/pages/custom types checkboxlist or a select dropdown
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public 
@@ -941,7 +941,7 @@ class Axe_Import_Metabox {
   /**
    * Show Taxonomy field.
    * used creating a category/tags/custom taxonomy checkboxlist or a select dropdown
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 1.0
    * @access public 
@@ -977,7 +977,7 @@ class Axe_Import_Metabox {
   /**
    * Show conditinal Checkbox Field.
    *
-   * @param string $field 
+   * @param array $field 
    * @param string $meta 
    * @since 2.9.9
    * @access public
@@ -1067,7 +1067,7 @@ class Axe_Import_Metabox {
    * Common function for saving fields.
    *
    * @param string $post_id 
-   * @param string $field 
+   * @param array $field 
    * @param string $old 
    * @param string|mixed $new 
    * @since 1.0
@@ -1091,7 +1091,7 @@ class Axe_Import_Metabox {
    * function for saving image field.
    *
    * @param string $post_id 
-   * @param string $field 
+   * @param array $field 
    * @param string $old 
    * @param string|mixed $new 
    * @since 1.7
@@ -1110,7 +1110,7 @@ class Axe_Import_Metabox {
    * Save Wysiwyg Field.
    *
    * @param string $post_id 
-   * @param string $field 
+   * @param array $field 
    * @param string $old 
    * @param string $new 
    * @since 1.0
@@ -1126,7 +1126,7 @@ class Axe_Import_Metabox {
    * Save repeater Fields.
    *
    * @param string $post_id 
-   * @param string $field 
+   * @param array $field 
    * @param string|mixed $old 
    * @param string|mixed $new 
    * @since 1.0
@@ -1164,7 +1164,7 @@ class Axe_Import_Metabox {
    * Save File Field.
    *
    * @param string $post_id 
-   * @param string $field 
+   * @param array $field 
    * @param string $old 
    * @param string $new 
    * @since 1.0
@@ -1183,7 +1183,7 @@ class Axe_Import_Metabox {
   /**
    * Save repeater File Field.
    * @param string $post_id 
-   * @param string $field 
+   * @param array $field 
    * @param string $old 
    * @param string $new 
    * @since 1.0
@@ -1266,7 +1266,7 @@ class Axe_Import_Metabox {
    * The More standard and appropriate:
    * $_FILES['field']['index']['key']
    *
-   * @param string $files 
+   * @param array $files 
    * @since 1.0
    * @access public
    */

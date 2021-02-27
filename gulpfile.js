@@ -43,7 +43,7 @@ const path = {
         fonts: 'assets/fonts/**/*.*',
         php: ['**/*.php','readme.*' ],
         doc: '/Documents/**/*.*',
-        plugin: 'build/**/*.*'
+        //plugin: 'build/**/*.*'
     },
     clean: './build'   
 
@@ -144,7 +144,7 @@ function copy() {
 }
 
 function watch() {
-    watcher(path.watch.plugin, copy);
+    //watcher(path.watch.plugin, copy);
     watcher(path.watch.js, js);
     watcher(path.watch.style, style);
     watcher(path.watch.img, image);

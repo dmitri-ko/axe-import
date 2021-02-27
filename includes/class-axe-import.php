@@ -139,7 +139,6 @@ class Axe_Import {
 		if ( is_admin() ) {
 			$this->admin = new Axe_Import_Admin_API();
 		}
-		
 
 	} // End __construct ()
 
@@ -163,7 +162,7 @@ class Axe_Import {
 		$post_type = new Axe_Import_Post_Type( $post_type, $plural, $single, $description, $options );
 
 		return $post_type;
-	}
+	} // End register_post_type ()
 
 	/**
 	 * Wrapper function to register a new taxonomy.
@@ -185,7 +184,7 @@ class Axe_Import {
 		$taxonomy = new Axe_Import_Taxonomy( $taxonomy, $plural, $single, $post_types, $taxonomy_args );
 
 		return $taxonomy;
-	}
+	} // End register_taxonomy ()
 
 	/**
 	 * Load frontend CSS.
@@ -335,243 +334,341 @@ class Axe_Import {
 	 * @return  void
 	 * @since   1.0.0
 	 */
-	public function register_all_post_types( ) {
+	public function register_all_post_types() {
 
-	//Image CPT registration
-	$args = array(
-		'supports'      => array( 'thumbnail'),
-		'menu_icon'     => 'dashicons-format-image',
-		'menu_position' => '',
-	);
-	
-	$this->register_post_type( 'axe_image', 
-								__( 'Images', 'axe-import' ), 
-								__( 'image', 'axe-import' ), 
-								__( 'Images for exhibitions', 'axe-import' ), 
-								$args 
-							);
-	$prefix = 'image_';
-	$config = array(
-		'id'             => $prefix.'meta_box',          // meta box id, unique per meta box
-		'title'          => __('Dimensions', 'axe-import'),          // meta box title
-		'pages'          => array('axe_image'),      // post types, accept custom post types as well, default is array('post'); optional
-		'context'        => 'normal',            // where the meta box appear: normal (default), advanced, side; optional
-		'priority'       => 'high',            // order of meta box: high (default), low; optional
-		'local_images'   => false,          // Use local or hosted images (meta box images for add/remove)
-		'fields'         => array(),
-	);
-	$my_meta =  new Axe_Import_Metabox($config);
-	$my_meta->addHidden('_id',array('name'=> __('Key', 'axe-import' )));
-	//Width
-	$my_meta->addText('_width',array('name'=> __('Width', 'axe-import' )));
-	//Heght
-	$my_meta->addText('_height',array('name'=> __('Height', 'axe-import' )));
-	//Finish Meta Box Declaration 
-	$my_meta->Finish();
-	//End of Image CPT registration
+		// Image CPT registration.
+		$args = array(
+			'supports'      => array( 'thumbnail' ),
+			'menu_icon'     => 'dashicons-format-image',
+			'menu_position' => '',
+		);
 
-	//Infos CPT registration
-	$args = array(
-		'supports'      => array( 'title'),
-		'menu_icon'     => 'dashicons-format-aside',
-		'menu_position' => '',
-	);
-	
-	$this->register_post_type( 'axe_infos', 
-								__( 'Infos', 'axe-import' ), 
-								__( 'info', 'axe-import' ), 
-								__( 'Image infos', 'axe-import' ), 
-								$args 
-							);
-	$prefix = 'infos_';
-	$config = array(
-		'id'             => $prefix.'meta_box',          // meta box id, unique per meta box
-		'title'          => __('Details', 'axe-import'),          // meta box title
-		'pages'          => array('axe_infos'),      // post types, accept custom post types as well, default is array('post'); optional
-		'context'        => 'normal',            // where the meta box appear: normal (default), advanced, side; optional
-		'priority'       => 'high',            // order of meta box: high (default), low; optional
-		'local_images'   => false,          // Use local or hosted images (meta box images for add/remove)
-		'fields'         => array(),
-	);
-	$my_meta =  new Axe_Import_Metabox($config);
-	$my_meta->addHidden('_id',array('name'=> __('Key', 'axe-import' )));
-	//Description
-	$my_meta->addTextArea('_description',array('name'=> __('Description', 'axe-import')));	
-	$my_meta->addPosts('_imageID',array('post_type' => 'axe_image', 'type' => 'ajax' ),array('name'=> __('Image', 'axe-import')));
-	//Finish Meta Box Declaration 
-	$my_meta->Finish();
-	//End of Infos CPT registration
+		$this->register_post_type(
+			'axe_image',
+			__( 'Images', 'axe-import' ),
+			__( 'image', 'axe-import' ),
+			__( 'Images for exhibitions', 'axe-import' ),
+			$args
+		);
+		$prefix  = 'image_';
+		$config  = array(
+			'id'           => $prefix . 'meta_box',
+			'title'        => __( 'Dimensions', 'axe-import' ),
+			'pages'        => array( 'axe_image' ),
+			'context'      => 'normal',
+			'priority'     => 'high',
+			'local_images' => false,
+			'fields'       => array(),
+		);
+		$my_meta = new Axe_Import_Metabox( $config );
+		$my_meta->addHidden( '_id', array( 'name' => __( 'Key', 'axe-import' ) ) );
+		$my_meta->addText( '_width', array( 'name' => __( 'Width', 'axe-import' ) ) );
+		$my_meta->addText( '_height', array( 'name' => __( 'Height', 'axe-import' ) ) );
+		$my_meta->Finish();
+		// End of Image CPT registration.
 
-	//Artist CPT registration
-	$args = array(
-		'supports'      => array( 'thumbnail'),
-		'menu_icon'     => 'dashicons-id-alt',
-		'menu_position' => '',
-	);
-	
-	$this->register_post_type( 'axe_artist', 
-								__( 'Artists', 'axe-import' ), 
-								__( 'artist', 'axe-import' ), 
-								__( 'Artists', 'axe-import' ), 
-								$args 
-							);
-	$prefix = 'artist_';
-	$config = array(
-		'id'             => $prefix.'meta_box',          // meta box id, unique per meta box
-		'title'          => __('Artist information', 'axe-import'),          // meta box title
-		'pages'          => array('axe_artist'),      // post types, accept custom post types as well, default is array('post'); optional
-		'context'        => 'normal',            // where the meta box appear: normal (default), advanced, side; optional
-		'priority'       => 'high',            // order of meta box: high (default), low; optional
-		'local_images'   => false,          // Use local or hosted images (meta box images for add/remove)
-		'fields'         => array(),
-	);
-	$my_meta =  new Axe_Import_Metabox($config);
-	$my_meta->addHidden('_id',array('name'=> __('Key', 'axe-import' )));
-	//Description
-	$my_meta->addText('_firstname',array('name'=> __('First Name', 'axe-import' ), 'group' => 'start'));
-	$my_meta->addText('_name',array('name'=> __('Name', 'axe-import' ), 'group' => 'end'));
-	$my_meta->addText('_birth',array('name'=> __('Birth', 'axe-import' ), 'group' => 'start'));
-	$my_meta->addText('_death',array('name'=> __('Death', 'axe-import' ), 'group' => 'end'));
-	$my_meta->addTextArea('_description',array('name'=> __('Description', 'axe-import')));	
-	$my_meta->addPosts('_imageID',array('post_type' => 'axe_image', 'type' => 'ajax' ),array('name'=> __('Image', 'axe-import')));
-	$repeater_fields = [];
-	$repeater_fields[] = $my_meta->addPosts('_artworkID',array('post_type' => 'axe_artwork', 'type' => 'ajax' ),array('name'=> __('Artwork', 'axe-import')), true );
-	$my_meta->addRepeaterBlock($prefix.'re_',array(
-		'inline'   => true, 
-		'name'     => __('Artworks', 'axe-import' ),
-		'fields'   => $repeater_fields, 
-		'sortable' => true
-	));		
-	//Finish Meta Box Declaration 
-	$my_meta->Finish();
-	//End of Artist CPT registration	
+		// Infos CPT registration.
+		$args = array(
+			'supports'      => array( 'title' ),
+			'menu_icon'     => 'dashicons-format-aside',
+			'menu_position' => '',
+		);
 
-	//Artwork CPT registration
-	$args = array(
-		'supports'      => array( 'title','thumbnail'),
-		'menu_icon'     => 'dashicons-smiley',
-		'menu_position' => '',
-	);
-	$this->register_post_type( 'axe_artwork', 
-								__( 'Artworks', 'axe-import' ), 
-								__( 'artwork', 'axe-import' ), 
-								__( 'Artworks', 'axe-import' ), 
-								$args 
-							);	
+		$this->register_post_type(
+			'axe_infos',
+			__( 'Infos', 'axe-import' ),
+			__( 'info', 'axe-import' ),
+			__( 'Image infos', 'axe-import' ),
+			$args
+		);
+		$prefix  = 'infos_';
+		$config  = array(
+			'id'           => $prefix . 'meta_box',
+			'title'        => __( 'Details', 'axe-import' ),
+			'pages'        => array( 'axe_infos' ),
+			'context'      => 'normal',
+			'priority'     => 'high',
+			'local_images' => false,
+			'fields'       => array(),
+		);
+		$my_meta = new Axe_Import_Metabox( $config );
+		$my_meta->addHidden( '_id', array( 'name' => __( 'Key', 'axe-import' ) ) );
+		$my_meta->addTextArea( '_description', array( 'name' => __( 'Description', 'axe-import' ) ) );
+		$my_meta->addPosts(
+			'_imageID',
+			array(
+				'post_type' => 'axe_image',
+				'type'      => 'ajax',
+			),
+			array( 'name' => __( 'Image', 'axe-import' ) )
+		);
+		$my_meta->Finish();
+		// End of Infos CPT registration.
 
-	$prefix = 'artwork_';
-	$config = array(
-		'id'             => $prefix.'meta_box',          // meta box id, unique per meta box
-		'title'          => __('Artwork information', 'axe-import'),          // meta box title
-		'pages'          => array('axe_artwork'),      // post types, accept custom post types as well, default is array('post'); optional
-		'context'        => 'normal',            // where the meta box appear: normal (default), advanced, side; optional
-		'priority'       => 'high',            // order of meta box: high (default), low; optional
-		'local_images'   => false,          // Use local or hosted images (meta box images for add/remove)
-		'fields'         => array(),
-	);
-	$my_meta =  new Axe_Import_Metabox($config);
-	$my_meta->addHidden('_id',array('name'=> __('Key', 'axe-import' )));
-	//Description
-	$my_meta->addText('_year',array('name'=> __('Year of establishment', 'axe-import' )));
-	$my_meta->addPosts('_artistID', array('post_type' => 'axe_artist', 'type' => 'ajax' ), array('name'=> __('Artist', 'axe-import' )));
-	$my_meta->addTextArea('_description',array('name'=> __('Description', 'axe-import')));	
-	$my_meta->addText('_owner',array('name'=> __('Owner', 'axe-import' )));
-	$my_meta->addPosts('_imageID',array('post_type' => 'axe_image', 'type' => 'ajax' ), array('name'=> __('Image', 'axe-import')));
-    $repeater_fields = [];
-	$repeater_fields[] = $my_meta->addPosts('_infosID',array('post_type' => 'axe_infos', 'type' => 'ajax'),array('name'=> __('Infos', 'axe-import')), true );
-	$my_meta->addRepeaterBlock($prefix.'re_',array(
-		'inline'   => true, 
-		'name'     => __('Infos', 'axe-import'),
-		'fields'   => $repeater_fields, 
-		'sortable' => true
-	));												
-	//Finish Meta Box Declaration 
-	$my_meta->Finish();	
-	//End of Artwork CPT registration	
+		// Artist CPT registration.
+		$args = array(
+			'supports'      => array( 'thumbnail' ),
+			'menu_icon'     => 'dashicons-id-alt',
+			'menu_position' => '',
+		);
 
-	//Group CPT registration
-	$args = array(
-		'supports'      => array( 'title'),
-		'menu_icon'     => 'dashicons-format-gallery',
-		'menu_position' => '',
-	);
-	$this->register_post_type( 'axe_group', 
-								__( 'Groups', 'axe-import' ), 
-								__( 'group', 'axe-import' ), 
-								__( 'Groups of artwork', 'axe-import' ), 
-								$args 
-							);	
+		$this->register_post_type(
+			'axe_artist',
+			__( 'Artists', 'axe-import' ),
+			__( 'artist', 'axe-import' ),
+			__( 'Artists', 'axe-import' ),
+			$args
+		);
+		$prefix  = 'artist_';
+		$config  = array(
+			'id'           => $prefix . 'meta_box',
+			'title'        => __( 'Artist information', 'axe-import' ),
+			'pages'        => array( 'axe_artist' ),
+			'context'      => 'normal',
+			'priority'     => 'high',
+			'local_images' => false,
+			'fields'       => array(),
+		);
+		$my_meta = new Axe_Import_Metabox( $config );
+		$my_meta->addHidden( '_id', array( 'name' => __( 'Key', 'axe-import' ) ) );
+		$my_meta->addText(
+			'_firstname',
+			array(
+				'name'  => __( 'First Name', 'axe-import' ),
+				'group' => 'start',
+			)
+		);
+		$my_meta->addText(
+			'_name',
+			array(
+				'name'  => __( 'Name', 'axe-import' ),
+				'group' => 'end',
+			)
+		);
+		$my_meta->addText(
+			'_birth',
+			array(
+				'name'  => __( 'Birth', 'axe-import' ),
+				'group' => 'start',
+			)
+		);
+		$my_meta->addText(
+			'_death',
+			array(
+				'name'  => __( 'Death', 'axe-import' ),
+				'group' => 'end',
+			)
+		);
+		$my_meta->addTextArea( '_description', array( 'name' => __( 'Description', 'axe-import' ) ) );
+		$my_meta->addPosts(
+			'_imageID',
+			array(
+				'post_type' => 'axe_image',
+				'type'      => 'ajax',
+			),
+			array( 'name' => __( 'Image', 'axe-import' ) )
+		);
+		$repeater_fields   = array();
+		$repeater_fields[] = $my_meta->addPosts(
+			'_artworkID',
+			array(
+				'post_type' => 'axe_artwork',
+				'type'      => 'ajax',
+			),
+			array( 'name' => __( 'Artwork', 'axe-import' ) ),
+			true
+		);
+		$my_meta->addRepeaterBlock(
+			$prefix . 're_',
+			array(
+				'inline'   => true,
+				'name'     => __( 'Artworks', 'axe-import' ),
+				'fields'   => $repeater_fields,
+				'sortable' => true,
+			)
+		);
+		$my_meta->Finish();
+		// End of Artist CPT registration.
 
-	$prefix = 'group_';
-	$config = array(
-		'id'             => $prefix.'meta_box',          // meta box id, unique per meta box
-		'title'          => __('Group information', 'axe-import'),          // meta box title
-		'pages'          => array('axe_group'),      // post types, accept custom post types as well, default is array('post'); optional
-		'context'        => 'normal',            // where the meta box appear: normal (default), advanced, side; optional
-		'priority'       => 'high',            // order of meta box: high (default), low; optional
-		'local_images'   => false,          // Use local or hosted images (meta box images for add/remove)
-		'fields'         => array(),
-	);
-	$my_meta =  new Axe_Import_Metabox($config);
-	$my_meta->addHidden('_id',array('name'=> __('Key', 'axe-import' )));
-	//Description
-	$my_meta->addTextArea('_description',array('name'=> __('Description', 'axe-import')));	
-	$repeater_fields = [];
-	$repeater_fields[] = $my_meta->addPosts('_artworkID',array('post_type' => 'axe_artwork', 'type' => 'ajax' ),array('name'=> __('Artwork', 'axe-import')), true );
-	$my_meta->addRepeaterBlock($prefix.'re_',array(
-		'inline'   => true, 
-		'name'     => __('Artworks', 'axe-import'),
-		'fields'   => $repeater_fields, 
-		'sortable' => true
-	));														
-	//Finish Meta Box Declaration 
-	$my_meta->Finish();	
-	//End of Group CPT registration	
+		// Artwork CPT registration.
+		$args = array(
+			'supports'      => array( 'title', 'thumbnail' ),
+			'menu_icon'     => 'dashicons-smiley',
+			'menu_position' => '',
+		);
+		$this->register_post_type(
+			'axe_artwork',
+			__( 'Artworks', 'axe-import' ),
+			__( 'artwork', 'axe-import' ),
+			__( 'Artworks', 'axe-import' ),
+			$args
+		);
 
-	//Exhibition CPT registration
-	$args = array(
-		'supports'      => array( 'title'),
-		'menu_icon'     => 'dashicons-images-alt',
-		'menu_position' => '',
-	);
-	$this->register_post_type( 'axe_Exhibition', 
-								__( 'Exhibitions', 'axe-import' ), 
-								__( 'exhibition', 'axe-import' ), 
-								__( 'Exhibitions of artwork', 'axe-import' ), 
-								$args 
-							);	
+		$prefix  = 'artwork_';
+		$config  = array(
+			'id'           => $prefix . 'meta_box',
+			'title'        => __( 'Artwork information', 'axe-import' ),
+			'pages'        => array( 'axe_artwork' ),
+			'context'      => 'normal',
+			'priority'     => 'high',
+			'local_images' => false,
+			'fields'       => array(),
+		);
+		$my_meta = new Axe_Import_Metabox( $config );
+		$my_meta->addHidden( '_id', array( 'name' => __( 'Key', 'axe-import' ) ) );
+		$my_meta->addText( '_year', array( 'name' => __( 'Year of establishment', 'axe-import' ) ) );
+		$my_meta->addPosts(
+			'_artistID',
+			array(
+				'post_type' => 'axe_artist',
+				'type'      => 'ajax',
+			),
+			array( 'name' => __( 'Artist', 'axe-import' ) )
+		);
+		$my_meta->addTextArea( '_description', array( 'name' => __( 'Description', 'axe-import' ) ) );
+		$my_meta->addText( '_owner', array( 'name' => __( 'Owner', 'axe-import' ) ) );
+		$my_meta->addPosts(
+			'_imageID',
+			array(
+				'post_type' => 'axe_image',
+				'type'      => 'ajax',
+			),
+			array( 'name' => __( 'Image', 'axe-import' ) )
+		);
+		$repeater_fields   = array();
+		$repeater_fields[] = $my_meta->addPosts(
+			'_infosID',
+			array(
+				'post_type' => 'axe_infos',
+				'type'      => 'ajax',
+			),
+			array( 'name' => __( 'Infos', 'axe-import' ) ),
+			true
+		);
+		$my_meta->addRepeaterBlock(
+			$prefix . 're_',
+			array(
+				'inline'   => true,
+				'name'     => __( 'Infos', 'axe-import' ),
+				'fields'   => $repeater_fields,
+				'sortable' => true,
+			)
+		);
+		$my_meta->Finish();
+		// End of Artwork CPT registration.
 
-	$prefix = 'exhibition_';
-	$config = array(
-		'id'             => $prefix.'meta_box',          // meta box id, unique per meta box
-		'title'          => __('Exhibition information', 'axe-import'),          // meta box title
-		'pages'          => array('axe_exhibition'),      // post types, accept custom post types as well, default is array('post'); optional
-		'context'        => 'normal',            // where the meta box appear: normal (default), advanced, side; optional
-		'priority'       => 'high',            // order of meta box: high (default), low; optional
-		'local_images'   => false,          // Use local or hosted images (meta box images for add/remove)
-		'fields'         => array(),
-	);
-	$my_meta =  new Axe_Import_Metabox($config);
-	$my_meta->addHidden('_id',array('name'=> __('Key', 'axe-import' )));
-	$my_meta->addDate('_start',array('name'=> __('Exhibition starts', 'axe-import'), 'group' => 'start'));
-	$my_meta->addDate('_end',array('name'=> __('Exhibition ends', 'axe-import'), 'group' => 'end'));
-	//Description
-	$my_meta->addTextArea('_description',array('name'=> __('Description', 'axe-import')));	
-	$repeater_fields = [];	
-	$repeater_fields[] = $my_meta->addPosts('_groupID',array('post_type' => 'axe_group', 'type' => 'ajax' ),array('name'=> __('Group', 'axe-import')), true );
-	$my_meta->addRepeaterBlock($prefix.'re_',array(
-		'inline'   => true, 
-		'name'     => __('Groups', 'axe-import' ),
-		'fields'   => $repeater_fields, 
-		'sortable' => true
-	));									
-		//Finish Meta Box Declaration 
-	$my_meta->Finish();	
-	//End of Exhibition CPT registration	
+		// Group CPT registration.
+		$args = array(
+			'supports'      => array( 'title' ),
+			'menu_icon'     => 'dashicons-format-gallery',
+			'menu_position' => '',
+		);
+		$this->register_post_type(
+			'axe_group',
+			__( 'Groups', 'axe-import' ),
+			__( 'group', 'axe-import' ),
+			__( 'Groups of artwork', 'axe-import' ),
+			$args
+		);
 
+		$prefix  = 'group_';
+		$config  = array(
+			'id'           => $prefix . 'meta_box',
+			'title'        => __( 'Group information', 'axe-import' ),
+			'pages'        => array( 'axe_group' ),
+			'context'      => 'normal',
+			'priority'     => 'high',
+			'local_images' => false,
+			'fields'       => array(),
+		);
+		$my_meta = new Axe_Import_Metabox( $config );
+		$my_meta->addHidden( '_id', array( 'name' => __( 'Key', 'axe-import' ) ) );
+		$my_meta->addTextArea( '_description', array( 'name' => __( 'Description', 'axe-import' ) ) );
+		$repeater_fields   = array();
+		$repeater_fields[] = $my_meta->addPosts(
+			'_artworkID',
+			array(
+				'post_type' => 'axe_artwork',
+				'type'      => 'ajax',
+			),
+			array( 'name' => __( 'Artwork', 'axe-import' ) ),
+			true
+		);
+		$my_meta->addRepeaterBlock(
+			$prefix . 're_',
+			array(
+				'inline'   => true,
+				'name'     => __( 'Artworks', 'axe-import' ),
+				'fields'   => $repeater_fields,
+				'sortable' => true,
+			)
+		);
+		$my_meta->Finish();
+		// End of Group CPT registration.
 
-  
-} // register_all_post_types ()
+		// Exhibition CPT registration.
+		$args = array(
+			'supports'      => array( 'title' ),
+			'menu_icon'     => 'dashicons-images-alt',
+			'menu_position' => '',
+		);
+		$this->register_post_type(
+			'axe_Exhibition',
+			__( 'Exhibitions', 'axe-import' ),
+			__( 'exhibition', 'axe-import' ),
+			__( 'Exhibitions of artwork', 'axe-import' ),
+			$args
+		);
+
+		$prefix  = 'exhibition_';
+		$config  = array(
+			'id'           => $prefix . 'meta_box',
+			'title'        => __( 'Exhibition information', 'axe-import' ),
+			'pages'        => array( 'axe_exhibition' ),
+			'context'      => 'normal',
+			'priority'     => 'high',
+			'local_images' => false,
+			'fields'       => array(),
+		);
+		$my_meta = new Axe_Import_Metabox( $config );
+		$my_meta->addHidden( '_id', array( 'name' => __( 'Key', 'axe-import' ) ) );
+		$my_meta->addDate(
+			'_start',
+			array(
+				'name'  => __( 'Exhibition starts', 'axe-import' ),
+				'group' => 'start',
+			)
+		);
+		$my_meta->addDate(
+			'_end',
+			array(
+				'name'  => __( 'Exhibition ends', 'axe-import' ),
+				'group' => 'end',
+			)
+		);
+		$my_meta->addTextArea( '_description', array( 'name' => __( 'Description', 'axe-import' ) ) );
+		$repeater_fields   = array();
+		$repeater_fields[] = $my_meta->addPosts(
+			'_groupID',
+			array(
+				'post_type' => 'axe_group',
+				'type'      => 'ajax',
+			),
+			array( 'name' => __( 'Group', 'axe-import' ) ),
+			true
+		);
+		$my_meta->addRepeaterBlock(
+			$prefix . 're_',
+			array(
+				'inline'   => true,
+				'name'     => __( 'Groups', 'axe-import' ),
+				'fields'   => $repeater_fields,
+				'sortable' => true,
+			)
+		);
+		$my_meta->Finish();
+		// End of Exhibition CPT registration.
+	} // End register_all_post_types ()
 
 
 }
