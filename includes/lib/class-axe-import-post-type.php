@@ -100,7 +100,7 @@ class Axe_Import_Post_Type {
 			'name'               => $this->plural,
 			'singular_name'      => $this->single,
 			'name_admin_bar'     => $this->single,
-			'add_new'            => _x( 'Add New', $this->post_type, 'axe-import' ),
+			'add_new'            => __( 'Add New', 'axe-import' ),
 			'add_new_item'       => sprintf( __( 'Add New %s', 'axe-import' ), $this->single ),
 			'edit_item'          => sprintf( __( 'Edit %s', 'axe-import' ), $this->single ),
 			'new_item'           => sprintf( __( 'New %s', 'axe-import' ), $this->single ),

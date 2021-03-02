@@ -340,7 +340,7 @@ class Axe_Import {
 		$args = array(
 			'supports'      => array( 'thumbnail' ),
 			'menu_icon'     => 'dashicons-format-image',
-			'menu_position' => '',
+			'menu_position' => 100006,
 		);
 
 		$this->register_post_type(
@@ -371,7 +371,7 @@ class Axe_Import {
 		$args = array(
 			'supports'      => array( 'title' ),
 			'menu_icon'     => 'dashicons-format-aside',
-			'menu_position' => '',
+			'menu_position' => 100005,
 		);
 
 		$this->register_post_type(
@@ -409,7 +409,7 @@ class Axe_Import {
 		$args = array(
 			'supports'      => array( 'thumbnail' ),
 			'menu_icon'     => 'dashicons-id-alt',
-			'menu_position' => '',
+			'menu_position' => 100004,
 		);
 
 		$this->register_post_type(
@@ -494,7 +494,7 @@ class Axe_Import {
 		$args = array(
 			'supports'      => array( 'title', 'thumbnail' ),
 			'menu_icon'     => 'dashicons-smiley',
-			'menu_position' => '',
+			'menu_position' => 100003,
 		);
 		$this->register_post_type(
 			'axe_artwork',
@@ -561,7 +561,7 @@ class Axe_Import {
 		$args = array(
 			'supports'      => array( 'title' ),
 			'menu_icon'     => 'dashicons-format-gallery',
-			'menu_position' => '',
+			'menu_position' => 100002,
 		);
 		$this->register_post_type(
 			'axe_group',
@@ -610,15 +610,17 @@ class Axe_Import {
 		$args = array(
 			'supports'      => array( 'title' ),
 			'menu_icon'     => 'dashicons-images-alt',
-			'menu_position' => '',
+			'menu_position' => 100001,
 		);
 		$this->register_post_type(
-			'axe_Exhibition',
+			'axe_exhibition',
 			__( 'Exhibitions', 'axe-import' ),
 			__( 'exhibition', 'axe-import' ),
 			__( 'Exhibitions of artwork', 'axe-import' ),
 			$args
 		);
+
+
 
 		$prefix  = 'exhibition_';
 		$config  = array(
@@ -668,6 +670,7 @@ class Axe_Import {
 		);
 		$my_meta->Finish();
 		// End of Exhibition CPT registration.
+
 	} // End register_all_post_types ()
 
 

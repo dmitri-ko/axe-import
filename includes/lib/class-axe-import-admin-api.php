@@ -40,12 +40,14 @@ class Axe_Import_Admin_API {
 		add_action( 'untrash_post', array( $this, 'untrash_cascade' ), 10 );
 		add_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10, 3 );
 		add_action( 'manage_posts_extra_tablenav', array( $this, 'add_import_button' ), 10, 1 );
+		add_action( 'admin_menu', array( $this, 'register_custom_submenu_page' ), 10 );
 
 		// Define the add-on.
 		$this->add_on = new RapidAddon( 'Axe Import Add-On', 'axe-import_addon' );
 
 		// Define add-on fields.
 		$this->add_on->add_field( '_id', __( 'ID', 'axe-import' ), 'text' );
+		$this->add_on->add_field( '_uid', __( 'Import uid', 'axe-import' ), 'text' );
 
 		$this->add_on->add_options(
 			null,
@@ -99,6 +101,232 @@ class Axe_Import_Admin_API {
 		$this->add_on->set_import_function( array( $this, 'import' ) );
 		add_action( 'admin_init', array( $this, 'init' ) );
 	}
+
+	/**
+	 * Generate HTML for displaying fields.
+	 *
+	 * @param  array   $data Data array.
+	 * @param  object  $post Post object.
+	 * @param  boolean $echo  Whether to echo the field HTML or return it.
+	 * @return string
+	 */
+	public function display_field( $data = array(), $post = null, $echo = true ) {
+
+		// Get field info.
+		if ( isset( $data['field'] ) ) {
+			$field = $data['field'];
+		} else {
+			$field = $data;
+		}
+
+		// Check for prefix on option name.
+		$option_name = '';
+		if ( isset( $data['prefix'] ) ) {
+			$option_name = $data['prefix'];
+		}
+
+		// Get saved data.
+		$data = '';
+		if ( $post ) {
+
+			// Get saved field data.
+			$option_name .= $field['id'];
+			$option       = get_post_meta( $post->ID, $field['id'], true );
+
+			// Get data to display in field.
+			if ( isset( $option ) ) {
+				$data = $option;
+			}
+		} else {
+
+			// Get saved option.
+			$option_name .= $field['id'];
+			$option       = get_option( $option_name );
+
+			// Get data to display in field.
+			if ( isset( $option ) ) {
+				$data = $option;
+			}
+		}
+
+		// Show default data if no option saved and default is supplied.
+		if ( false === $data && isset( $field['default'] ) ) {
+			$data = $field['default'];
+		} elseif ( false === $data ) {
+			$data = '';
+		}
+
+		$html = '';
+
+		switch ( $field['type'] ) {
+
+			case 'text':
+			case 'url':
+			case 'email':
+				$html .= '<input id="' . esc_attr( $field['id'] ) . '" type="text" name="' . esc_attr( $option_name ) . '" placeholder="' . esc_attr( $field['placeholder'] ) . '" value="' . esc_attr( $data ) . '" />' . "\n";
+				break;
+
+			case 'password':
+			case 'number':
+			case 'hidden':
+				$min = '';
+				if ( isset( $field['min'] ) ) {
+					$min = ' min="' . esc_attr( $field['min'] ) . '"';
+				}
+
+				$max = '';
+				if ( isset( $field['max'] ) ) {
+					$max = ' max="' . esc_attr( $field['max'] ) . '"';
+				}
+				$html .= '<input id="' . esc_attr( $field['id'] ) . '" type="' . esc_attr( $field['type'] ) . '" name="' . esc_attr( $option_name ) . '" placeholder="' . esc_attr( $field['placeholder'] ) . '" value="' . esc_attr( $data ) . '"' . $min . '' . $max . '/>' . "\n";
+				break;
+
+			case 'text_secret':
+				$html .= '<input id="' . esc_attr( $field['id'] ) . '" type="text" name="' . esc_attr( $option_name ) . '" placeholder="' . esc_attr( $field['placeholder'] ) . '" value="" />' . "\n";
+				break;
+
+			case 'textarea':
+				$html .= '<textarea id="' . esc_attr( $field['id'] ) . '" rows="5" cols="50" name="' . esc_attr( $option_name ) . '" placeholder="' . esc_attr( $field['placeholder'] ) . '">' . $data . '</textarea><br/>' . "\n";
+				break;
+
+			case 'checkbox':
+				$checked = '';
+				if ( $data && 'on' === $data ) {
+					$checked = 'checked="checked"';
+				}
+				$html .= '<input id="' . esc_attr( $field['id'] ) . '" type="' . esc_attr( $field['type'] ) . '" name="' . esc_attr( $option_name ) . '" ' . $checked . '/>' . "\n";
+				break;
+
+			case 'checkbox_multi':
+				foreach ( $field['options'] as $k => $v ) {
+					$checked = false;
+					if ( in_array( $k, (array) $data, true ) ) {
+						$checked = true;
+					}
+					$html .= '<p><label for="' . esc_attr( $field['id'] . '_' . $k ) . '" class="checkbox_multi"><input type="checkbox" ' . checked( $checked, true, false ) . ' name="' . esc_attr( $option_name ) . '[]" value="' . esc_attr( $k ) . '" id="' . esc_attr( $field['id'] . '_' . $k ) . '" /> ' . $v . '</label></p> ';
+				}
+				break;
+
+			case 'radio':
+				foreach ( $field['options'] as $k => $v ) {
+					$checked = false;
+					if ( $k === $data ) {
+						$checked = true;
+					}
+					$html .= '<label for="' . esc_attr( $field['id'] . '_' . $k ) . '"><input type="radio" ' . checked( $checked, true, false ) . ' name="' . esc_attr( $option_name ) . '" value="' . esc_attr( $k ) . '" id="' . esc_attr( $field['id'] . '_' . $k ) . '" /> ' . $v . '</label> ';
+				}
+				break;
+
+			case 'select':
+				$html .= '<select name="' . esc_attr( $option_name ) . '" id="' . esc_attr( $field['id'] ) . '">';
+				foreach ( $field['options'] as $k => $v ) {
+					$selected = false;
+					if ( $k === $data ) {
+						$selected = true;
+					}
+					$html .= '<option ' . selected( $selected, true, false ) . ' value="' . esc_attr( $k ) . '">' . $v . '</option>';
+				}
+				$html .= '</select> ';
+				break;
+
+			case 'select_multi':
+				$html .= '<select name="' . esc_attr( $option_name ) . '[]" id="' . esc_attr( $field['id'] ) . '" multiple="multiple">';
+				foreach ( $field['options'] as $k => $v ) {
+					$selected = false;
+					if ( in_array( $k, (array) $data, true ) ) {
+						$selected = true;
+					}
+					$html .= '<option ' . selected( $selected, true, false ) . ' value="' . esc_attr( $k ) . '">' . $v . '</option>';
+				}
+				$html .= '</select> ';
+				break;
+
+			case 'image':
+				$image_thumb = '';
+				if ( $data ) {
+					$image_thumb = wp_get_attachment_thumb_url( $data );
+				}
+				$html .= '<img id="' . $option_name . '_preview" class="image_preview" src="' . $image_thumb . '" /><br/>' . "\n";
+				$html .= '<input id="' . $option_name . '_button" type="button" data-uploader_title="' . __( 'Upload an image', 'wordpress-plugin-template' ) . '" data-uploader_button_text="' . __( 'Use image', 'wordpress-plugin-template' ) . '" class="image_upload_button button" value="' . __( 'Upload new image', 'wordpress-plugin-template' ) . '" />' . "\n";
+				$html .= '<input id="' . $option_name . '_delete" type="button" class="image_delete_button button" value="' . __( 'Remove image', 'wordpress-plugin-template' ) . '" />' . "\n";
+				$html .= '<input id="' . $option_name . '" class="image_data_field" type="hidden" name="' . $option_name . '" value="' . $data . '"/><br/>' . "\n";
+				break;
+
+			case 'color':
+				//phpcs:disable
+				?><div class="color-picker" style="position:relative;">
+					<input type="text" name="<?php esc_attr_e( $option_name ); ?>" class="color" value="<?php esc_attr_e( $data ); ?>" />
+					<div style="position:absolute;background:#FFF;z-index:99;border-radius:100%;" class="colorpicker"></div>
+				</div>
+				<?php
+				//phpcs:enable
+				break;
+
+			case 'editor':
+				wp_editor(
+					$data,
+					$option_name,
+					array(
+						'textarea_name' => $option_name,
+					)
+				);
+				break;
+
+		}
+
+		switch ( $field['type'] ) {
+
+			case 'checkbox_multi':
+			case 'radio':
+			case 'select_multi':
+				$html .= '<br/><span class="description">' . $field['description'] . '</span>';
+				break;
+
+			default:
+				if ( ! $post ) {
+					$html .= '<label for="' . esc_attr( $field['id'] ) . '">' . "\n";
+				}
+
+				$html .= '<span class="description">' . $field['description'] . '</span>' . "\n";
+
+				if ( ! $post ) {
+					$html .= '</label>' . "\n";
+				}
+				break;
+		}
+
+		if ( ! $echo ) {
+			return $html;
+		}
+
+		echo $html; //phpcs:ignore
+
+	}
+
+	/**
+	 * Validate form field
+	 *
+	 * @param  string $data Submitted value.
+	 * @param  string $type Type of field to validate.
+	 * @return string       Validated value
+	 */
+	public function validate_field( $data = '', $type = 'text' ) {
+
+		switch ( $type ) {
+			case 'text':
+				$data = esc_attr( $data );
+				break;
+			case 'url':
+				$data = esc_url( $data );
+				break;
+			case 'email':
+				$data = is_email( $data );
+				break;
+		}
+
+		return $data;
+	}
+
 	/**
 	 * Logger function
 	 *
@@ -216,6 +444,32 @@ class Axe_Import_Admin_API {
 		}
 	}
 
+
+	/**
+	 * Get post ids from meta key and value
+	 *
+	 * @param string $key meta key.
+	 * @param mixed  $value meta value.
+	 * @return array array of related post_id.
+	 */
+	public function get_posts_by_meta_key_and_value( $key, $value ) {
+		global $wpdb;
+		$posts     = array();
+		$cache_key = sprintf( 'posts-metakey[%s]-metavalue[%s]', $key, $value );
+		$meta      = wp_cache_get( $cache_key );
+		if ( false === $meta ) {
+			//phpcs:disable
+			$meta = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `' . $wpdb->postmeta . '` WHERE meta_key = %s AND meta_value = %s', $key, $value ), OBJECT );
+			//phpcs:enable
+			wp_cache_set( $cache_key, $meta );
+		}
+		foreach ( $meta as $row ) {
+			if ( $row->post_id ) {
+				$posts[] = $row->post_id;
+			}
+		}
+		return $posts;
+	}
 	/**
 	 * WP AllImport Data modification before the import
 	 *
@@ -361,6 +615,7 @@ class Axe_Import_Admin_API {
 		// Retrieve import object.
 		$import = new PMXI_Import_Record();
 		$import->getById( $import_id );
+		$uid = uniqid();
 
 		// Ensure import object is valid.
 		if ( ! $import->isEmpty() ) {
@@ -441,6 +696,12 @@ class Axe_Import_Admin_API {
 							} else {
 								$record->addChild( 'title', $record->_id );
 							}
+						}
+
+						if ( ! $record->uid ) {
+							$record->uid = $uid;
+						} else {
+							$record->addChild( 'uid', $uid );
 						}
 					}
 				}
@@ -558,6 +819,7 @@ class Axe_Import_Admin_API {
 			'_width',
 			'_height',
 			'_error',
+			'_uid',
 		);
 
 		foreach ( $properties as $property ) {
@@ -601,9 +863,9 @@ class Axe_Import_Admin_API {
 	 * @return void
 	 */
 	public function untrash_cascade( $post_id ) {
-		$post = get_post( $post_id );
-		if ( 'axe_exhibition' === $post->post_type ) {
-			$this->move_exhibition( $post_id, 'restore' );
+		$post_type = get_post_type( $post_id );
+		if ( 'axe_exhibition' === $post_type && $this->is_action_needed( $post_id, 'remove', false ) ) {
+			$this->move_cascade( $post_id, 'remove', false );
 		}
 	}
 
@@ -614,9 +876,9 @@ class Axe_Import_Admin_API {
 	 * @return void
 	 */
 	public function trash_cascade( $post_id ) {
-		$post = get_post( $post_id );
-		if ( 'axe_exhibition' === $post->post_type ) {
-			$this->move_exhibition( $post_id, 'delete', true );
+		$post_type = get_post_type( $post_id );
+		if ( 'axe_exhibition' === $post_type && $this->is_action_needed( $post_id, 'delete', true ) ) {
+			$this->move_cascade( $post_id, 'delete', true );
 		}
 	}
 
@@ -628,10 +890,33 @@ class Axe_Import_Admin_API {
 	 * @return void
 	 */
 	public function delete_cascade( $post_id, $post ) {
-		if ( 'axe_exhibition' === $post->post_type ) {
-			$this->move_exhibition( $post_id, 'delete' );
+		$post_type = get_post_type( $post_id );
+		if ( 'axe_exhibition' === $post_type && $this->is_action_needed( $post_id, 'delete', false ) ) {
+			$this->move_cascade( $post_id, 'delete', false );
 		}
 	}
+
+	/**
+	 * Cascade movement of posts
+	 *
+	 * @param int     $post_id deleted post ID.
+	 * @param string  $direction delete or restore.
+	 * @param boolean $trash if true post moves to trash bin.
+	 * @return void
+	 */
+	public function move_cascade( $id, $direction, $trash ) {
+		$meta = get_post_meta( $id, '_uid' );
+		if ( $meta && is_array( $meta ) && isset( $meta[0] ) ) {
+			$meta = $meta[0];
+		}
+		$posts = $this->get_posts_by_meta_key_and_value( '_uid', $meta );
+		foreach ( $posts as $post_id ) {
+			if ( strval( $id ) !== $post_id ) {
+				$this->move_post( $post_id, $direction, $trash );
+			}
+		}
+	}
+
 
 	/**
 	 * Move exhibition post
@@ -803,12 +1088,15 @@ class Axe_Import_Admin_API {
 			if ( $trash ) {
 				wp_trash_post( $post_id );
 			} else {
+				$attachments = get_attached_media( '', $post_id );
+				foreach ( $attachments as $attachment ) {
+					wp_delete_attachment( $attachment->ID, 'true' );
+				}
 				wp_delete_post( $post_id );
 			}
 		} else {
 			wp_untrash_post( $post_id );
 		}
-
 	}
 
 	/**
@@ -839,8 +1127,12 @@ class Axe_Import_Admin_API {
 	public function add_import_button( $which ) {
 		global $typenow;
 		if ( 'axe_exhibition' === $typenow && 'top' === $which ) {
+			$import_name = get_option( 'axe_import_name' );
+			if ( ! $import_name ) {
+				$import_name = 'Axe Import';
+			}
 			$import = new PMXI_Import_Record();
-			$import->getByFriendly_Name( 'Axe Import' );
+			$import->getByFriendly_Name( $import_name );
 			if ( ! $import->isEmpty() ) {
 				$import_id = $import->id;
 				$url       = get_admin_url(
@@ -858,11 +1150,56 @@ class Axe_Import_Admin_API {
 				echo $button;
 			} else {
 				$this->add_on->admin_notice(
-					__( 'Could not find any import with the name Axe Import. Please create an import using Wp All Import menu.', 'axe-import' )
+					// translators: the name of import.
+					sprintf( __( 'Could not find any import with the name %s. Please create an import using Wp All Import menu.', 'axe-import' ), $import_name )
 				);
 			}
 		}
 	}
 
+	public function register_custom_submenu_page() {
+		$import_name = get_option( 'axe_import_name' );
+		if ( ! $import_name ) {
+			$import_name = 'Axe Import';
+		}
+		$import = new PMXI_Import_Record();
+		$import->getByFriendly_Name( $import_name );
+		if ( ! $import->isEmpty() ) {
+			$import_id = $import->id;
+			$url       = get_admin_url(
+				null,
+				sprintf( 'admin.php?page=pmxi-admin-manage&id=%s&action=options', $import_id )
+			);
+			add_submenu_page(
+				'edit.php?post_type=axe_exhibition',
+				__( 'Import Exhibition', 'axe-import' ),
+				__( 'Import Exhibition', 'axe-import' ),
+				'manage_options',
+				$url,
+				''
+			);
+		}
+
+		global $menu;
+
+		$menu['3.1'] = $menu[100001];
+		$menu['3.2'] = $menu[100002];
+		$menu['3.3'] = $menu[100003];
+		$menu['3.4'] = $menu[100004];
+		$menu['3.6'] = $menu[100005];
+		$menu['3.7'] = $menu[100006];
+
+		unset( $menu[100001] );
+		unset( $menu[100002] );
+		unset( $menu[100003] );
+		unset( $menu[100004] );
+		unset( $menu[100005] );
+		unset( $menu[100006] );		
+
+		// move Media menu (position 10) item to front, in the same group
+		$menu['3.8'] = $menu[10];
+		unset( $menu[10] );
+
+	}
 
 }
