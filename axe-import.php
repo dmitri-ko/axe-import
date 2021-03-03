@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Axe Import
- * Version: 1.0.0
+ * Version: 1.0.1
  * Plugin URI: https://github.com/dmitri-ko/axe-import
  * Description: DB Models and Import Plugin for Exhibitions.
  * Author: Dmitry Kokorin

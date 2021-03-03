@@ -208,6 +208,7 @@ class Axe_Import {
 	public function enqueue_scripts() {
 		wp_register_script( $this->_token . '-frontend', esc_url( $this->assets_url ) . 'js/frontend' . $this->script_suffix . '.js', array( 'jquery' ), $this->_version, true );
 		wp_enqueue_script( $this->_token . '-frontend' );
+
 	} // End enqueue_scripts ()
 
 	/**
@@ -220,6 +221,7 @@ class Axe_Import {
 	public function admin_enqueue_styles( $hook = '' ) {
 		wp_register_style( $this->_token . '-admin', esc_url( $this->assets_url ) . 'css/admin.css', array(), $this->_version );
 		wp_enqueue_style( $this->_token . '-admin' );
+
 	} // End admin_enqueue_styles ()
 
 	/**
@@ -235,6 +237,8 @@ class Axe_Import {
 	public function admin_enqueue_scripts( $hook = '' ) {
 		wp_register_script( $this->_token . '-admin', esc_url( $this->assets_url ) . 'js/admin' . $this->script_suffix . '.js', array( 'jquery' ), $this->_version, true );
 		wp_enqueue_script( $this->_token . '-admin' );
+		wp_register_script( $this->_token . '-admin-confirm', esc_url( $this->assets_url ) . 'js/confirm/jquery-confirm.min.js', array( 'jquery' ), $this->_version, true );
+		wp_enqueue_script( $this->_token . '-admin-confirm' );
 	} // End admin_enqueue_scripts ()
 
 	/**
@@ -608,7 +612,7 @@ class Axe_Import {
 
 		// Exhibition CPT registration.
 		$args = array(
-			'supports'      => array( 'title' ),
+			'supports'      => array( 'title'),
 			'menu_icon'     => 'dashicons-images-alt',
 			'menu_position' => 100001,
 		);
@@ -619,8 +623,6 @@ class Axe_Import {
 			__( 'Exhibitions of artwork', 'axe-import' ),
 			$args
 		);
-
-
 
 		$prefix  = 'exhibition_';
 		$config  = array(
@@ -670,7 +672,6 @@ class Axe_Import {
 		);
 		$my_meta->Finish();
 		// End of Exhibition CPT registration.
-
 	} // End register_all_post_types ()
 
 

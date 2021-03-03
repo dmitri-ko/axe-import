@@ -28,9 +28,9 @@ const path = {
         doc:   'build/Documents/',
     },
     src: { //Пути откуда брать исходники
-        js: 'assets/js/*.js',//В стилях и скриптах нам понадобятся только main файлы
+        js: 'assets/js/**/*.js',//В стилях и скриптах нам понадобятся только main файлы
         img: 'assets/images/**/*.*', //Синтаксис img/**/*.* означает - взять все файлы всех расширений из папки и из вложенных каталогов
-        style: 'assets/css/**/*.scss',
+        style: 'assets/css/*.scss',
         fonts: 'assets/fonts/**/*.*',
         php: ['**/*.php','readme.*', 'lang/**/*.mo' ],
         doc: '/Documents/**/*.*',
@@ -39,7 +39,7 @@ const path = {
     watch: { //Тут мы укажем, за изменением каких файлов мы хотим наблюдать
         js: 'assets/js/*.js',//В стилях и скриптах нам понадобятся только main файлы
         img: 'assets/images/**/*.*', //Синтаксис img/**/*.* означает - взять все файлы всех расширений из папки и из вложенных каталогов
-        style: 'assets/css/**/*.scss',
+        style: 'assets/css/*.scss',
         fonts: 'assets/fonts/**/*.*',
         php: ['**/*.php','readme.*' ],
         doc: '/Documents/**/*.*',

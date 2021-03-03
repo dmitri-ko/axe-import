@@ -24,6 +24,15 @@ class Axe_Import_Admin_API {
 	protected $add_on;
 
 	/**
+	 * The posttype filter.
+	 *
+	 * @var     array
+	 * @access  protected
+	 * @since   1.0.1
+	 */
+	protected $post_type_filter;
+
+	/**
 	 * Constructor function
 	 */
 	public function __construct() {
@@ -41,6 +50,8 @@ class Axe_Import_Admin_API {
 		add_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10, 3 );
 		add_action( 'manage_posts_extra_tablenav', array( $this, 'add_import_button' ), 10, 1 );
 		add_action( 'admin_menu', array( $this, 'register_custom_submenu_page' ), 10 );
+		add_action( 'admin_footer-edit.php', array( $this, 'delete_alert' ), 10 );
+		add_action( 'print_styles_array', array( $this, 'filter_styles' ), 10, 1 );
 
 		// Define the add-on.
 		$this->add_on = new RapidAddon( 'Axe Import Add-On', 'axe-import_addon' );
@@ -100,6 +111,8 @@ class Axe_Import_Admin_API {
 
 		$this->add_on->set_import_function( array( $this, 'import' ) );
 		add_action( 'admin_init', array( $this, 'init' ) );
+
+		$this->post_type_filter = array();
 	}
 
 	/**
@@ -470,6 +483,7 @@ class Axe_Import_Admin_API {
 		}
 		return $posts;
 	}
+
 	/**
 	 * WP AllImport Data modification before the import
 	 *
@@ -863,6 +877,14 @@ class Axe_Import_Admin_API {
 	 * @return void
 	 */
 	public function untrash_cascade( $post_id ) {
+
+		// if ( check_admin_referer( 'restore' ) ) {
+		$this->post_type_filter['axe_group']   = isset( $_REQUEST['groups'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['groups'] ) ) ? false : true;
+		$this->post_type_filter['axe_artwork'] = isset( $_REQUEST['artworks'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artworks'] ) ) ? false : true;
+		$this->post_type_filter['axe_artist']  = isset( $_REQUEST['artists'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artists'] ) ) ? false : true;
+		$this->post_type_filter['axe_infos']   = isset( $_REQUEST['infos'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['infos'] ) ) ? false : true;
+		$this->post_type_filter['axe_image']   = isset( $_REQUEST['images'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['images'] ) ) ? false : true;
+		// }
 		$post_type = get_post_type( $post_id );
 		if ( 'axe_exhibition' === $post_type && $this->is_action_needed( $post_id, 'remove', false ) ) {
 			$this->move_cascade( $post_id, 'remove', false );
@@ -876,6 +898,14 @@ class Axe_Import_Admin_API {
 	 * @return void
 	 */
 	public function trash_cascade( $post_id ) {
+
+		// if ( wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '', 'trash' ) ) {
+			$this->post_type_filter['axe_group']   = isset( $_REQUEST['groups'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['groups'] ) ) ? false : true;
+			$this->post_type_filter['axe_artwork'] = isset( $_REQUEST['artworks'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artworks'] ) ) ? false : true;
+			$this->post_type_filter['axe_artist']  = isset( $_REQUEST['artists'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artists'] ) ) ? false : true;
+			$this->post_type_filter['axe_infos']   = isset( $_REQUEST['infos'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['infos'] ) ) ? false : true;
+			$this->post_type_filter['axe_image']   = isset( $_REQUEST['images'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['images'] ) ) ? false : true;
+			// }
 		$post_type = get_post_type( $post_id );
 		if ( 'axe_exhibition' === $post_type && $this->is_action_needed( $post_id, 'delete', true ) ) {
 			$this->move_cascade( $post_id, 'delete', true );
@@ -890,6 +920,15 @@ class Axe_Import_Admin_API {
 	 * @return void
 	 */
 	public function delete_cascade( $post_id, $post ) {
+
+		if ( check_admin_referer( 'delete' ) ) {
+			$this->post_type_filter['axe_group']   = isset( $_REQUEST['groups'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['groups'] ) ) ? false : true;
+			$this->post_type_filter['axe_artwork'] = isset( $_REQUEST['artworks'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artworks'] ) ) ? false : true;
+			$this->post_type_filter['axe_artist']  = isset( $_REQUEST['artists'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artists'] ) ) ? false : true;
+			$this->post_type_filter['axe_infos']   = isset( $_REQUEST['infos'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['infos'] ) ) ? false : true;
+			$this->post_type_filter['axe_image']   = isset( $_REQUEST['images'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['images'] ) ) ? false : true;
+		}
+
 		$post_type = get_post_type( $post_id );
 		if ( 'axe_exhibition' === $post_type && $this->is_action_needed( $post_id, 'delete', false ) ) {
 			$this->move_cascade( $post_id, 'delete', false );
@@ -899,12 +938,13 @@ class Axe_Import_Admin_API {
 	/**
 	 * Cascade movement of posts
 	 *
-	 * @param int     $post_id deleted post ID.
+	 * @param int     $id deleted post ID.
 	 * @param string  $direction delete or restore.
 	 * @param boolean $trash if true post moves to trash bin.
 	 * @return void
 	 */
 	public function move_cascade( $id, $direction, $trash ) {
+
 		$meta = get_post_meta( $id, '_uid' );
 		if ( $meta && is_array( $meta ) && isset( $meta[0] ) ) {
 			$meta = $meta[0];
@@ -912,169 +952,14 @@ class Axe_Import_Admin_API {
 		$posts = $this->get_posts_by_meta_key_and_value( '_uid', $meta );
 		foreach ( $posts as $post_id ) {
 			if ( strval( $id ) !== $post_id ) {
-				$this->move_post( $post_id, $direction, $trash );
-			}
-		}
-	}
-
-
-	/**
-	 * Move exhibition post
-	 *
-	 * @param int     $exhibition_id exhibition ID to remove.
-	 * @param string  $direction delete or restore.
-	 * @param boolean $trash if true post moves to trash bin.
-	 * @return void
-	 */
-	private function move_exhibition( $exhibition_id, $direction = 'delete', $trash = false ) {
-		if ( $exhibition_id && $this->is_action_needed( $exhibition_id, $direction, $trash ) ) {
-			// Find all groups.
-			$groups = get_post_meta( $exhibition_id, 'exhibition_re_' );
-			if ( $groups && is_array( $groups ) && isset( $groups[0] ) ) {
-				$groups = $groups[0];
-			}
-			foreach ( $groups  as $group ) {
-				// Get group ID.
-				$group_id = $this->get_post_id_by_meta_key_and_value( '_id', $group['_groupID'] );
-				$this->move_group( $group_id, $direction, $trash );
-			}
-		}
-	}
-
-	/**
-	 * Move group post
-	 *
-	 * @param int     $group_id group ID to remove.
-	 * @param string  $direction delete or restore.
-	 * @param boolean $trash if true post moves to trash bin.
-	 * @return void
-	 */
-	private function move_group( $group_id, $direction = 'delete', $trash = false ) {
-		if ( $group_id && $this->is_action_needed( $group_id, $direction, $trash ) ) {
-			if ( $group_id ) {
-				// Get axe_group post.
-				$group_post = get_post( $group_id );
-				if ( $group_post ) {
-					// Find all artworks.
-					$artworks = get_post_meta( $group_id, 'group_re_' );
-					if ( $artworks && is_array( $artworks ) && isset( $artworks[0] ) ) {
-						$artworks = $artworks[0];
-					}
-					foreach ( $artworks  as $artwork ) {
-						// Get artwork ID.
-						$artwork_id = $this->get_post_id_by_meta_key_and_value( '_id', $artwork['_artworkID'] );
-						$this->move_artwork( $artwork_id, $direction, $trash );
-					}
-
-					$this->move_post( $group_id, $direction, $trash );
+				$post_type = get_post_type( $post_id );
+				if ( ! isset( $this->post_type_filter[ $post_type ] ) || $this->post_type_filter[ $post_type ] ) {
+					$this->move_post( $post_id, $direction, $trash );
 				}
 			}
 		}
 	}
 
-	/**
-	 * Move artwork post
-	 *
-	 * @param int     $artwork_id artwork ID to remove.
-	 * @param string  $direction delete or restore.
-	 * @param boolean $trash if true post moves to trash bin.
-	 * @return void
-	 */
-	private function move_artwork( $artwork_id, $direction = 'delete', $trash = false ) {
-		if ( $artwork_id && $this->is_action_needed( $artwork_id, $direction, $trash ) ) {
-			// Get axe_artwork post.
-			$artwork_post = get_post( $artwork_id );
-			if ( $artwork_post ) {
-				// Find artist.
-				$artist = get_post_meta( $artwork_id, '_artistID' );
-				if ( $artist && is_array( $artist ) && isset( $artist[0] ) ) {
-					$artist_id = $this->get_post_id_by_meta_key_and_value( '_id', $artist[0] );
-					$this->move_artist( $artist_id, $direction, $trash );
-				}
-				// Find image.
-				$artwork_image = get_post_meta( $artwork_id, '_imageID' );
-				if ( $artwork_image && is_array( $artwork_image ) && isset( $artwork_image[0] ) ) {
-					$artwork_image_id = $this->get_post_id_by_meta_key_and_value( '_id', $artwork_image[0] );
-					$this->move_image( $artwork_image_id, $direction, $trash );
-				}
-
-				// Find all infos.
-				$infos = get_post_meta( $artwork_id, 'artwork_re_' );
-				if ( $infos && is_array( $infos ) && isset( $infos[0] ) ) {
-					$infos = $infos[0];
-				}
-				foreach ( $infos as $info ) {
-					// Get infos ID.
-					$infos_id = $this->get_post_id_by_meta_key_and_value( '_id', $info['_infosID'] );
-					$this->move_infos( $infos_id, $direction, $trash );
-				}
-				$this->move_post( $artwork_id, $direction, $trash );
-			}
-		}
-	}
-
-	/**
-	 * Move artist post
-	 *
-	 * @param int     $artist_id artist ID to remove.
-	 * @param string  $direction delete or restore.
-	 * @param boolean $trash if true post moves to trash bin.
-	 * @return void
-	 */
-	private function move_artist( $artist_id, $direction = 'delete', $trash = false ) {
-		if ( $artist_id && $this->is_action_needed( $artist_id, $direction, $trash ) ) {
-			// Get axe_artist post.
-			$artist_post = get_post( $artist_id );
-			if ( $artist_post ) {
-				// Get artist image.
-				$artist_image = get_post_meta( $artist_id, '_imageID' );
-				if ( $artist_image && is_array( $artist_image ) && isset( $artist_image[0] ) ) {
-					$artist_image_id = $this->get_post_id_by_meta_key_and_value( '_id', $artist_image[0] );
-					$this->move_image( $artist_image_id, $direction, $trash );
-				}
-			}
-			$this->move_post( $artist_id, $direction, $trash );
-		}
-	}
-
-	/**
-	 * Move image post
-	 *
-	 * @param int     $image_id image ID to remove.
-	 * @param string  $direction delete or restore.
-	 * @param boolean $trash if true post moves to trash bin.
-	 * @return void
-	 */
-	private function move_image( $image_id, $direction = 'delete', $trash ) {
-		if ( $image_id && $this->is_action_needed( $image_id, $direction, $trash ) ) {
-			if ( 'delete' === $direction && ! $trash ) {
-				$attachments = get_attached_media( '', $image_id );
-				foreach ( $attachments as $attachment ) {
-					wp_delete_attachment( $attachment->ID, 'true' );
-				}
-			}
-			$this->move_post( $image_id, $direction, $trash );
-		}
-	}
-
-	/**
-	 *  Move infos post
-	 *
-	 * @param int     $infos_id infos ID to remove.
-	 * @param string  $direction delete or restore.
-	 * @param boolean $trash if true post moves to trash bin.
-	 * @return void
-	 */
-	private function move_infos( $infos_id, $direction = 'delete', $trash ) {
-		if ( $infos_id && $this->is_action_needed( $infos_id, $direction, $trash ) ) {
-			$infos_image = get_post_meta( $infos_id, '_imageID' );
-			if ( $infos_image && is_array( $infos_image ) && isset( $infos_image[0] ) ) {
-				$infos_image_id = $this->get_post_id_by_meta_key_and_value( '_id', $infos_image[0] );
-				$this->move_image( $infos_image_id, $direction, $trash );
-			}
-			$this->move_post( $infos_id, $direction, $trash );
-		}
-	}
 	/**
 	 * Move post
 	 *
@@ -1157,6 +1042,11 @@ class Axe_Import_Admin_API {
 		}
 	}
 
+	/**
+	 * Admin menu rearangement
+	 *
+	 * @return void
+	 */
 	public function register_custom_submenu_page() {
 		$import_name = get_option( 'axe_import_name' );
 		if ( ! $import_name ) {
@@ -1194,12 +1084,119 @@ class Axe_Import_Admin_API {
 		unset( $menu[100003] );
 		unset( $menu[100004] );
 		unset( $menu[100005] );
-		unset( $menu[100006] );		
+		unset( $menu[100006] );
 
-		// move Media menu (position 10) item to front, in the same group
+		// move Media menu (position 10) item to front, in the same group.
 		$menu['3.8'] = $menu[10];
 		unset( $menu[10] );
 
 	}
 
+	/**
+	 * Alert before deleting
+	 *
+	 * @return void
+	 */
+	public function delete_alert() {
+		$screen = get_current_screen();
+
+		if ( in_array( $screen->id, array( 'edit-axe_exhibition' ), true ) ) {
+			?>
+			<script type="text/javascript">
+				jQuery(document).ready(function($){
+					$('a.submitdelete').click(function(e){
+						e.preventDefault();
+						var href = $(this).attr('href');
+						var r = $.confirm({
+							title: '<?php echo esc_html_e( 'Do you really want to delete the exhibition?', 'axe-import' ); ?>',
+							columnClass: 'medium',
+							theme: 'bootstrap',
+							type: 'red',
+							content: 
+							<?php
+							echo "'" . sprintf(
+								'<form action="" class="formName">' .
+										'<div class="form-group">' .
+										'<label class="form-head">%s</label>' .
+										'<div class="form-check">' .
+										'<input class="form-check-input" type="checkbox" id="groups" name="groups" checked>' .
+										'<label class="form-check-label" for="groups">%s</label>' .
+										'</div>' .
+										'<div class="form-check">' .
+										'<input class="form-check-input" type="checkbox" id="artworks" name="artworks" checked>' .
+										'<label class="form-check-label" for="artworks">%s</label>' .
+										'</div>' .
+										'<div class="form-check">' .
+										'<input class="form-check-input" type="checkbox" id="artists" name="artists" checked>' .
+										'<label class="form-check-label" for="artists">%s</label>' .
+										'</div>' .
+										'<div class="form-check">' .
+										'<input class="form-check-input" type="checkbox" id="infos" name="infos" checked>' .
+										'<label class="form-check-label" for="infos">%s</label>' .
+										'</div>' .
+										'<div class="form-check">' .
+										'<input class="form-check-input" type="checkbox" id="images" name="images" checked>' .
+										'<label class="form-check-label" for="images">%s</label>' .
+										'</div>' .
+										'</div>' .
+										'</form>',
+								__( 'Please select which associated content to delete:', 'axe-import' ),
+								__( 'Groups', 'axe-import' ),
+								__( 'Artworks', 'axe-import' ),
+								__( 'Artists', 'axe-import' ),
+								__( 'Infos', 'axe-import' ),
+								__( 'Images', 'axe-import' )
+							) . "'";
+							?>
+							,
+							buttons: {
+								formSubmit: {
+									text: 'Delete',
+									btnClass: 'btn-red',
+									action: function () {
+										var groups = this.$content.find('#groups').is(':checked');
+										var artworks = this.$content.find('#artworks').is(':checked');
+										var artists = this.$content.find('#artists').is(':checked');
+										var infos = this.$content.find('#infos').is(':checked');
+										var images = this.$content.find('#images').is(':checked');
+										location.href = href + '&groups=' + groups
+														+ '&artworks=' + artworks
+														+ '&artists=' + artists
+														+ '&infos=' + infos
+														+ '&images=' + images;
+									}
+								},
+								cancel: function () {
+									//close
+								},
+							}
+						});
+					});
+
+					$('#doaction').click(function(e){
+						if($('#bulk-action-selector-top').val() == 'trash'){
+							if($('input[name="post[]"]:checked').length > 0){
+								var r = confirm('Are you sure you want to delete these <?php echo $screen->post_type; ?>s');
+								if(!r){
+									e.preventDefault();
+								}
+							}
+						}
+					});
+				});
+			</script>
+			<?php
+		}
+		return true;
+	}
+
+	public function filter_styles( $styles ) {
+
+		$key = array_search( 'forms', $styles, true );
+		if ( false !== $key ) {
+			//unset( $styles[ $key ] );
+		}
+
+		return $styles;
+	}
 }
