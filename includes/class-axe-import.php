@@ -612,7 +612,7 @@ class Axe_Import {
 
 		// Exhibition CPT registration.
 		$args = array(
-			'supports'      => array( 'title'),
+			'supports'      => array( 'title' ),
 			'menu_icon'     => 'dashicons-images-alt',
 			'menu_position' => 100001,
 		);

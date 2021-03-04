@@ -38,6 +38,7 @@ class Axe_Import_Admin_API {
 	public function __construct() {
 
 		add_action( 'wp_ajax_axe_get_posts', array( $this, 'ajax_get_posts' ), 10, 1 );
+		add_action( 'wp_ajax_axe_get_post_types', array( $this, 'ajax_get_post_types' ), 10, 1 );
 		add_action( 'pmxi_saved_post', array( $this, 'convert_repeater_data' ), 10, 3 );
 		add_action( 'pmxi_before_xml_import', array( $this, 'pmxi_before_xml_import' ), 10, 1 );
 		add_filter( 'update_post_metadata', array( $this, 'delete_empty_meta' ), 10, 5 );
@@ -51,7 +52,8 @@ class Axe_Import_Admin_API {
 		add_action( 'manage_posts_extra_tablenav', array( $this, 'add_import_button' ), 10, 1 );
 		add_action( 'admin_menu', array( $this, 'register_custom_submenu_page' ), 10 );
 		add_action( 'admin_footer-edit.php', array( $this, 'delete_alert' ), 10 );
-		add_action( 'print_styles_array', array( $this, 'filter_styles' ), 10, 1 );
+		add_action( 'admin_footer-post.php', array( $this, 'delete_alert' ), 10 );
+		add_action( 'transition_post_status', array( $this, 'change_status_cascade' ), 10, 3 );
 
 		// Define the add-on.
 		$this->add_on = new RapidAddon( 'Axe Import Add-On', 'axe-import_addon' );
@@ -112,7 +114,14 @@ class Axe_Import_Admin_API {
 		$this->add_on->set_import_function( array( $this, 'import' ) );
 		add_action( 'admin_init', array( $this, 'init' ) );
 
-		$this->post_type_filter = array();
+		$this->post_type_filter = array(
+			'axe_exhibition' => true,
+			'axe_group'      => true,
+			'axe_artwork'    => true,
+			'axe_artist'     => true,
+			'axe_infos'      => true,
+			'axe_image'      => true,
+		);
 	}
 
 	/**
@@ -347,12 +356,18 @@ class Axe_Import_Admin_API {
 	 * @return void
 	 */
 	protected function logger( $m ) {
+		$allowed_html = array(
+			'div' => array(
+				'class' => true,
+			),
+		);
+
 		$msg = sprintf(
 			"<div class='progress-msg'>[%s] %s</div>\n",
 			esc_html( gmdate( 'H:i:s' ) ),
 			esc_html( $m )
 		);
-		echo $msg;
+		echo wp_kses( $msg, $allowed_html );
 		flush();
 	}
 
@@ -431,13 +446,61 @@ class Axe_Import_Admin_API {
 	}
 
 	/**
+	 * Get posts types for ajax query.
+	 *
+	 * @return void
+	 */
+	public function ajax_get_post_types() {
+		$return            = array();
+		$return['content'] = '';
+
+		if ( ! isset( $_REQUEST['axe_alert_nonce'] )
+		|| ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['axe_alert_nonce'] ) ), 'axe-alerts' )
+		) {
+			$return['content'] = __( 'Sorry, your nonce did not verify', 'axe-import' );
+			$retutn['status']  = 'error';
+		} else {
+			$type               = isset( $_REQUEST['form'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['form'] ) ) : 'default';
+			$return['content'] .= sprintf(
+				'<form action="" class="form-%s">' .
+				'<div class="form-group">' .
+				'<label class="form-head">%s</label>',
+				$type,
+				__( 'Please select which associated content to delete:', 'axe-import' )
+			);
+
+			$return['content'] .= wp_nonce_field( 'axe-actions', 'axe_action_nonce', true, false );
+			foreach ( $this->post_type_filter as $type => $state ) {
+				$post_type = get_post_type_object( $type );
+				if ( 'axe_exhibition' === $post_type->name ) {
+					continue;
+				}
+				$return['content'] .= sprintf(
+					'<div class="form-check">' .
+					'<input class="form-check-input" type="checkbox" id="%s" name="%s" checked>' .
+					'<label class="form-check-label" for="groups">%s</label>' .
+					'</div>',
+					$post_type->name,
+					$post_type->name,
+					$post_type->labels->name
+				);
+			}
+			$return['content'] .= '</div>' .
+			'</form>';
+			$return['status']   = 'ok';
+		}
+		echo wp_json_encode( $return );
+		wp_die(); // this is required to terminate immediately and return a proper response.
+	}
+
+	/**
 	 * Get post id from meta key and value
 	 *
 	 * @param string $key meta key.
 	 * @param mixed  $value meta value.
 	 * @return int|bool
 	 */
-	public function get_post_id_by_meta_key_and_value( $key, $value ) {
+	public static function get_post_id_by_meta_key_and_value( $key, $value ) {
 		global $wpdb;
 		$cache_key = sprintf( 'metakey[%s]-metavalue[%s]', $key, $value );
 		$meta      = wp_cache_get( $cache_key );
@@ -465,7 +528,7 @@ class Axe_Import_Admin_API {
 	 * @param mixed  $value meta value.
 	 * @return array array of related post_id.
 	 */
-	public function get_posts_by_meta_key_and_value( $key, $value ) {
+	public static function get_posts_by_meta_key_and_value( $key, $value ) {
 		global $wpdb;
 		$posts     = array();
 		$cache_key = sprintf( 'posts-metakey[%s]-metavalue[%s]', $key, $value );
@@ -524,8 +587,9 @@ class Axe_Import_Admin_API {
 		global $wp_filesystem;
 
 		// Obtain the original content (usually binary data).
+		//phpcs:disable
 		$bin = base64_decode( $b64 );
-
+		//phpcs:enable
 		// Gather information about the image using the GD library.
 		$size = getImageSizeFromString( $bin );
 
@@ -878,18 +942,65 @@ class Axe_Import_Admin_API {
 	 */
 	public function untrash_cascade( $post_id ) {
 
-		// if ( check_admin_referer( 'restore' ) ) {
-		$this->post_type_filter['axe_group']   = isset( $_REQUEST['groups'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['groups'] ) ) ? false : true;
-		$this->post_type_filter['axe_artwork'] = isset( $_REQUEST['artworks'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artworks'] ) ) ? false : true;
-		$this->post_type_filter['axe_artist']  = isset( $_REQUEST['artists'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artists'] ) ) ? false : true;
-		$this->post_type_filter['axe_infos']   = isset( $_REQUEST['infos'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['infos'] ) ) ? false : true;
-		$this->post_type_filter['axe_image']   = isset( $_REQUEST['images'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['images'] ) ) ? false : true;
-		// }
+		if ( isset( $_REQUEST['axe-action-nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['axe-action-nonce'] ) ), 'axe-actions' ) ) {
+			$this->post_type_filter['axe_group']   = isset( $_REQUEST['groups'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['groups'] ) ) ? false : true;
+			$this->post_type_filter['axe_artwork'] = isset( $_REQUEST['artworks'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artworks'] ) ) ? false : true;
+			$this->post_type_filter['axe_artist']  = isset( $_REQUEST['artists'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artists'] ) ) ? false : true;
+			$this->post_type_filter['axe_infos']   = isset( $_REQUEST['infos'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['infos'] ) ) ? false : true;
+			$this->post_type_filter['axe_image']   = isset( $_REQUEST['images'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['images'] ) ) ? false : true;
+		}
 		$post_type = get_post_type( $post_id );
-		if ( 'axe_exhibition' === $post_type && $this->is_action_needed( $post_id, 'remove', false ) ) {
-			$this->move_cascade( $post_id, 'remove', false );
+		if ( 'axe_exhibition' === $post_type && $this->is_action_needed( $post_id, 'restore', false ) ) {
+			$this->move_cascade( $post_id, 'restore', false );
 		}
 	}
+
+	/**
+	 * Cascade change status from Exhibition post
+	 *
+	 * @param string $new_status new post status.
+	 * @param string $old_status old post status.
+	 * @param object $post post to update status.
+	 * @return void
+	 */
+	public function change_status_cascade( $new_status, $old_status, $post ) {
+
+		if ( isset( $_REQUEST['axe-action-nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['axe-action-nonce'] ) ), 'axe-actions' ) ) {
+			$this->post_type_filter['axe_group']   = isset( $_REQUEST['groups'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['groups'] ) ) ? false : true;
+			$this->post_type_filter['axe_artwork'] = isset( $_REQUEST['artworks'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artworks'] ) ) ? false : true;
+			$this->post_type_filter['axe_artist']  = isset( $_REQUEST['artists'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artists'] ) ) ? false : true;
+			$this->post_type_filter['axe_infos']   = isset( $_REQUEST['infos'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['infos'] ) ) ? false : true;
+			$this->post_type_filter['axe_image']   = isset( $_REQUEST['images'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['images'] ) ) ? false : true;
+		}
+
+		if ( $old_status === $new_status && 'draft' === $old_status ) {
+			$new_status        = 'publish';
+			$post->post_status = $new_status;
+			wp_update_post( $post );
+		}
+		$post_type = $post->post_type;
+
+		if ( 'axe_exhibition' === $post_type ) {
+			$meta = get_post_meta( $post->ID, '_uid' );
+			if ( $meta && is_array( $meta ) && isset( $meta[0] ) ) {
+				$meta = $meta[0];
+			}
+			$posts = $this->get_posts_by_meta_key_and_value( '_uid', $meta );
+			foreach ( $posts as $post_id ) {
+				if ( strval( $post->ID ) !== $post_id ) {
+					$post_type = get_post_type( $post_id );
+					if ( ! isset( $this->post_type_filter[ $post_type ] ) || $this->post_type_filter[ $post_type ] ) {
+						$_post = get_post( $post_id );
+						if ( $_post->post_status !== $new_status ) {
+							$_post->post_status = $new_status;
+							wp_update_post( wp_slash( $_post ) );
+						}
+					}
+				}
+			}
+		}
+	}
+
 
 	/**
 	 * Cascade move to trash of all elements from Exhibition post
@@ -898,14 +1009,13 @@ class Axe_Import_Admin_API {
 	 * @return void
 	 */
 	public function trash_cascade( $post_id ) {
-
-		// if ( wp_verify_nonce( isset( $_REQUEST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_wpnonce'] ) ) : '', 'trash' ) ) {
+		if ( isset( $_REQUEST['axe-action-nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['axe-action-nonce'] ) ), 'axe-actions' ) ) {
 			$this->post_type_filter['axe_group']   = isset( $_REQUEST['groups'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['groups'] ) ) ? false : true;
 			$this->post_type_filter['axe_artwork'] = isset( $_REQUEST['artworks'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artworks'] ) ) ? false : true;
 			$this->post_type_filter['axe_artist']  = isset( $_REQUEST['artists'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artists'] ) ) ? false : true;
 			$this->post_type_filter['axe_infos']   = isset( $_REQUEST['infos'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['infos'] ) ) ? false : true;
 			$this->post_type_filter['axe_image']   = isset( $_REQUEST['images'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['images'] ) ) ? false : true;
-			// }
+		}
 		$post_type = get_post_type( $post_id );
 		if ( 'axe_exhibition' === $post_type && $this->is_action_needed( $post_id, 'delete', true ) ) {
 			$this->move_cascade( $post_id, 'delete', true );
@@ -921,7 +1031,7 @@ class Axe_Import_Admin_API {
 	 */
 	public function delete_cascade( $post_id, $post ) {
 
-		if ( check_admin_referer( 'delete' ) ) {
+		if ( isset( $_REQUEST['axe-action-nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['axe-action-nonce'] ) ), 'axe-actions' ) ) {
 			$this->post_type_filter['axe_group']   = isset( $_REQUEST['groups'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['groups'] ) ) ? false : true;
 			$this->post_type_filter['axe_artwork'] = isset( $_REQUEST['artworks'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artworks'] ) ) ? false : true;
 			$this->post_type_filter['axe_artist']  = isset( $_REQUEST['artists'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artists'] ) ) ? false : true;
@@ -1011,6 +1121,22 @@ class Axe_Import_Admin_API {
 	 */
 	public function add_import_button( $which ) {
 		global $typenow;
+		$allowed_html = array(
+			'a'      => array(
+				'href'  => true,
+				'title' => true,
+			),
+			'div'    => array(
+				'class' => true,
+			),
+			'button' => array(
+				'class' => true,
+				'name'  => true,
+				'type'  => true,
+				'value' => true,
+			),
+		);
+
 		if ( 'axe_exhibition' === $typenow && 'top' === $which ) {
 			$import_name = get_option( 'axe_import_name' );
 			if ( ! $import_name ) {
@@ -1026,13 +1152,13 @@ class Axe_Import_Admin_API {
 				);
 				$button    = sprintf(
 					'<div class="alignleft actions axe-import-button">
-            <button type="submit" name="import_exhibition" class="button" value="yes">
-			<a href="%s">%s</a></button>
-            </div>',
+            			<button type="submit" name="import_exhibition" class="button" value="yes">
+						<a href="%s">%s</a></button>
+           			</div>',
 					$url,
 					__( 'Import Exhibition', 'axe-import' )
 				);
-				echo $button;
+				echo wp_kses( $button, $allowed_html );
 			} else {
 				$this->add_on->admin_notice(
 					// translators: the name of import.
@@ -1071,7 +1197,7 @@ class Axe_Import_Admin_API {
 		}
 
 		global $menu;
-
+		//phpcs:disable
 		$menu['3.1'] = $menu[100001];
 		$menu['3.2'] = $menu[100002];
 		$menu['3.3'] = $menu[100003];
@@ -1089,85 +1215,72 @@ class Axe_Import_Admin_API {
 		// move Media menu (position 10) item to front, in the same group.
 		$menu['3.8'] = $menu[10];
 		unset( $menu[10] );
+		// phpcs:enable
 
 	}
 
 	/**
 	 * Alert before deleting
 	 *
-	 * @return void
+	 * @return bool
 	 */
 	public function delete_alert() {
 		$screen = get_current_screen();
-
-		if ( in_array( $screen->id, array( 'edit-axe_exhibition' ), true ) ) {
+		$nonce  = wp_create_nonce( 'axe-alerts' );
+		if ( in_array( $screen->id, array( 'edit-axe_exhibition', 'axe_exhibition' ), true ) ) {
 			?>
 			<script type="text/javascript">
 				jQuery(document).ready(function($){
 					$('a.submitdelete').click(function(e){
 						e.preventDefault();
 						var href = $(this).attr('href');
-						var r = $.confirm({
+						$.confirm({
 							title: '<?php echo esc_html_e( 'Do you really want to delete the exhibition?', 'axe-import' ); ?>',
 							columnClass: 'medium',
-							theme: 'bootstrap',
+							icon: 'fa fa-warning',
 							type: 'red',
-							content: 
-							<?php
-							echo "'" . sprintf(
-								'<form action="" class="formName">' .
-										'<div class="form-group">' .
-										'<label class="form-head">%s</label>' .
-										'<div class="form-check">' .
-										'<input class="form-check-input" type="checkbox" id="groups" name="groups" checked>' .
-										'<label class="form-check-label" for="groups">%s</label>' .
-										'</div>' .
-										'<div class="form-check">' .
-										'<input class="form-check-input" type="checkbox" id="artworks" name="artworks" checked>' .
-										'<label class="form-check-label" for="artworks">%s</label>' .
-										'</div>' .
-										'<div class="form-check">' .
-										'<input class="form-check-input" type="checkbox" id="artists" name="artists" checked>' .
-										'<label class="form-check-label" for="artists">%s</label>' .
-										'</div>' .
-										'<div class="form-check">' .
-										'<input class="form-check-input" type="checkbox" id="infos" name="infos" checked>' .
-										'<label class="form-check-label" for="infos">%s</label>' .
-										'</div>' .
-										'<div class="form-check">' .
-										'<input class="form-check-input" type="checkbox" id="images" name="images" checked>' .
-										'<label class="form-check-label" for="images">%s</label>' .
-										'</div>' .
-										'</div>' .
-										'</form>',
-								__( 'Please select which associated content to delete:', 'axe-import' ),
-								__( 'Groups', 'axe-import' ),
-								__( 'Artworks', 'axe-import' ),
-								__( 'Artists', 'axe-import' ),
-								__( 'Infos', 'axe-import' ),
-								__( 'Images', 'axe-import' )
-							) . "'";
-							?>
-							,
+							content: function () {
+								var self = this;
+								return $.ajax({
+									url: ajaxurl,
+									dataType: 'json',
+									method: 'get',
+									data: { 
+											action: 'axe_get_post_types',
+											form: 'red',
+											axe_alert_nonce:  '<?php echo esc_html( $nonce ); ?>' 
+									}
+								}).done(function (response) {
+									self.setContent(response.content);
+								}).fail(function(){
+									self.setContent('Something went wrong.');
+								});
+							},
 							buttons: {
-								formSubmit: {
-									text: 'Delete',
+								ok: {
+									text: '<?php echo esc_html_e( 'Delete', 'axe-import' ); ?>',
 									btnClass: 'btn-red',
 									action: function () {
-										var groups = this.$content.find('#groups').is(':checked');
-										var artworks = this.$content.find('#artworks').is(':checked');
-										var artists = this.$content.find('#artists').is(':checked');
-										var infos = this.$content.find('#infos').is(':checked');
-										var images = this.$content.find('#images').is(':checked');
+										var groups = this.$content.find('#axe_group').is(':checked');
+										var artworks = this.$content.find('#axe_artwork').is(':checked');
+										var artists = this.$content.find('#axe_artist').is(':checked');
+										var infos = this.$content.find('#axe_infos').is(':checked');
+										var images = this.$content.find('#axe_image').is(':checked');	
+										var nonce = this.$content.find('#axe_action_nonce').val();
+
 										location.href = href + '&groups=' + groups
 														+ '&artworks=' + artworks
 														+ '&artists=' + artists
 														+ '&infos=' + infos
-														+ '&images=' + images;
+														+ '&images=' + images
+														+ '&axe_action_nonce=' + nonce;
 									}
 								},
-								cancel: function () {
+								cancel: {
+									text: '<?php echo esc_html_e( 'Cancel', 'axe-import' ); ?>',
+									action: function () {
 									//close
+									}
 								},
 							}
 						});
@@ -1176,27 +1289,269 @@ class Axe_Import_Admin_API {
 					$('#doaction').click(function(e){
 						if($('#bulk-action-selector-top').val() == 'trash'){
 							if($('input[name="post[]"]:checked').length > 0){
-								var r = confirm('Are you sure you want to delete these <?php echo $screen->post_type; ?>s');
-								if(!r){
-									e.preventDefault();
-								}
+								e.preventDefault();
+								$.confirm({
+									title: '<?php echo esc_html_e( 'Do you really want to delete these exhibitions?', 'axe-import' ); ?>',
+									columnClass: 'medium',
+									icon: 'fa fa-warning',
+									type: 'red',
+									content: function () {
+												var self = this;
+												return $.ajax({
+													url: ajaxurl,
+													dataType: 'json',
+													method: 'get',
+													data: { 
+															action: 'axe_get_post_types',
+															form: 'red',
+															axe_alert_nonce:  '<?php echo esc_html( $nonce ); ?>'
+													}
+												}).done(function (response) {
+													self.setContent(response.content);
+												}).fail(function(){
+													self.setContent('Something went wrong.');
+												});
+											},
+									buttons: {
+										ok: {
+											text: '<?php echo esc_html_e( 'Delete', 'axe-import' ); ?>',
+											btnClass: 'btn-red',
+											action: function () {
+
+													$('<input />').attr('type', 'hidden')
+													.attr('name', 'groups')
+													.attr('value', this.$content.find('#axe_group').is(':checked'))
+													.appendTo('#posts-filter');
+
+													$('<input />').attr('type', 'hidden')
+													.attr('name', 'artworks')
+													.attr('value', this.$content.find('#axe_artwork').is(':checked'))
+													.appendTo('#posts-filter');
+
+													$('<input />').attr('type', 'hidden')
+													.attr('name', 'atrists')
+													.attr('value', this.$content.find('#axe_atrist').is(':checked'))
+													.appendTo('#posts-filter');
+
+													$('<input />').attr('type', 'hidden')
+													.attr('name', 'infos')
+													.attr('value', this.$content.find('#axe_infos').is(':checked'))
+													.appendTo('#posts-filter');
+
+													$('<input />').attr('type', 'hidden')
+													.attr('name', 'images')
+													.attr('value', this.$content.find('#axe_image').is(':checked'))
+													.appendTo('#posts-filter');
+
+													$('#posts-filter').submit();
+											}
+										},
+										cancel: {
+											text: '<?php echo esc_html_e( 'Cancel', 'axe-import' ); ?>',
+											action: function () {
+												//close
+											}
+										},
+									}
+								});
 							}
 						}
+					});
+
+					$('.untrash a').click(function(e){
+						e.preventDefault();
+						var href = $(this).attr('href');
+						$.confirm({
+							title: '<?php echo esc_html_e( 'Do you really want to restore the exhibition?', 'axe-import' ); ?>',
+							columnClass: 'medium',
+							type: 'green',
+							content: function () {
+								var self = this;
+								return $.ajax({
+									url: ajaxurl,
+									dataType: 'json',
+									method: 'get',
+									data: { 
+											action: 'axe_get_post_types',
+											form: 'green',
+											axe_alert_nonce:  '<?php echo esc_html( $nonce ); ?>' 
+									}
+								}).done(function (response) {
+									self.setContent(response.content);
+								}).fail(function(){
+									self.setContent('Something went wrong.');
+								});
+							},
+							buttons: {
+								ok: {
+									text: '<?php echo esc_html_e( 'Restore', 'axe-import' ); ?>',
+									btnClass: 'btn-green',
+									action: function () {
+										var groups = this.$content.find('#axe_group').is(':checked');
+										var artworks = this.$content.find('#axe_artwork').is(':checked');
+										var artists = this.$content.find('#axe_artist').is(':checked');
+										var infos = this.$content.find('#axe_infos').is(':checked');
+										var images = this.$content.find('#axe_image').is(':checked');	
+										var nonce = this.$content.find('#axe_action_nonce').val();
+
+										location.href = href + '&groups=' + groups
+														+ '&artworks=' + artworks
+														+ '&artists=' + artists
+														+ '&infos=' + infos
+														+ '&images=' + images
+														+ '&axe_action_nonce=' + nonce;
+									}
+								},
+								cancel: {
+									text: '<?php echo esc_html_e( 'Cancel', 'axe-import' ); ?>',
+									action: function () {
+									//close
+									}
+								},
+							}
+						});
+					});		
+
+					$('#doaction').click(function(e){
+						if($('#bulk-action-selector-top').val() == 'untrash'){
+							if($('input[name="post[]"]:checked').length > 0){
+								e.preventDefault();
+								$.confirm({
+							title: '<?php echo esc_html_e( 'Do you really want to restore the exhibition?', 'axe-import' ); ?>',
+							columnClass: 'medium',
+							type: 'green',
+							content: function () {
+								var self = this;
+								return $.ajax({
+									url: ajaxurl,
+									dataType: 'json',
+									method: 'get',
+									data: { 
+											action: 'axe_get_post_types',
+											form: 'green',
+											axe_alert_nonce:  '<?php echo esc_html( $nonce ); ?>' 
+									}
+								}).done(function (response) {
+									self.setContent(response.content);
+								}).fail(function(){
+									self.setContent('Something went wrong.');
+								});
+							},
+							buttons: {
+								ok: {
+									text: '<?php echo esc_html_e( 'Restore', 'axe-import' ); ?>',
+									btnClass: 'btn-green',
+									action: function () {
+										$('<input />').attr('type', 'hidden')
+													.attr('name', 'groups')
+													.attr('value', this.$content.find('#axe_group').is(':checked'))
+													.appendTo('#posts-filter');
+
+													$('<input />').attr('type', 'hidden')
+													.attr('name', 'artworks')
+													.attr('value', this.$content.find('#axe_artwork').is(':checked'))
+													.appendTo('#posts-filter');
+
+													$('<input />').attr('type', 'hidden')
+													.attr('name', 'atrists')
+													.attr('value', this.$content.find('#axe_atrist').is(':checked'))
+													.appendTo('#posts-filter');
+
+													$('<input />').attr('type', 'hidden')
+													.attr('name', 'infos')
+													.attr('value', this.$content.find('#axe_infos').is(':checked'))
+													.appendTo('#posts-filter');
+
+													$('<input />').attr('type', 'hidden')
+													.attr('name', 'images')
+													.attr('value', this.$content.find('#axe_image').is(':checked'))
+													.appendTo('#posts-filter');
+
+													$('#posts-filter').submit();
+									}
+								},
+								cancel: {
+									text: '<?php echo esc_html_e( 'Cancel', 'axe-import' ); ?>',
+									action: function () {
+									//close
+									}
+								},
+							}
+						});
+							}
+						}
+					});	
+
+					$('#publish').click(function(e){
+						e.preventDefault();
+						$.confirm({
+							title: '<?php echo esc_html_e( 'Do you really want to change status of the exhibitions?', 'axe-import' ); ?>',
+							columnClass: 'medium',
+							type: 'purple',
+							content: function () {
+								var self = this;
+								return $.ajax({
+									url: ajaxurl,
+									dataType: 'json',
+									method: 'get',
+									data: { 
+											action: 'axe_get_post_types',
+											form: 'purple',
+											axe_alert_nonce:  '<?php echo esc_html( $nonce ); ?>' 
+									}
+								}).done(function (response) {
+									self.setContent(response.content);
+								}).fail(function(){
+									self.setContent('Something went wrong.');
+								});
+							},
+							buttons: {
+								ok: {
+										text: '<?php echo esc_html_e( 'Update', 'axe-import' ); ?>',
+										btnClass: 'btn-purple',
+										action: function () {
+
+											$('<input />').attr('type', 'hidden')
+												.attr('name', 'groups')
+												.attr('value', this.$content.find('#axe_group').is(':checked'))
+												.appendTo('#post');
+
+											$('<input />').attr('type', 'hidden')
+												.attr('name', 'artworks')
+												.attr('value', this.$content.find('#axe_artwork').is(':checked'))
+												.appendTo('#post');
+
+											$('<input />').attr('type', 'hidden')
+												.attr('name', 'atrists')
+												.attr('value', this.$content.find('#axe_atrist').is(':checked'))
+												.appendTo('#post');
+
+											$('<input />').attr('type', 'hidden')
+												.attr('name', 'infos')
+												.attr('value', this.$content.find('#axe_infos').is(':checked'))
+												.appendTo('#post');
+
+											$('<input />').attr('type', 'hidden')
+												.attr('name', 'images')
+												.attr('value', this.$content.find('#axe_image').is(':checked'))
+												.appendTo('#post#publish');
+
+											$('#post').submit();
+										}
+									},
+									cancel: {
+											text: '<?php echo esc_html_e( 'Cancel', 'axe-import' ); ?>',
+											action: function () {
+												//close
+											}
+									},
+							}
+						});
 					});
 				});
 			</script>
 			<?php
 		}
 		return true;
-	}
-
-	public function filter_styles( $styles ) {
-
-		$key = array_search( 'forms', $styles, true );
-		if ( false !== $key ) {
-			//unset( $styles[ $key ] );
-		}
-
-		return $styles;
 	}
 }
