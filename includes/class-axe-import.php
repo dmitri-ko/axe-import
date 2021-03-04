@@ -219,8 +219,15 @@ class Axe_Import {
 	 * @return void
 	 */
 	public function admin_enqueue_styles( $hook = '' ) {
-		wp_register_style( $this->_token . '-admin', esc_url( $this->assets_url ) . 'css/admin.css', array(), $this->_version );
+		wp_register_style( $this->_token . '-admin', esc_url( $this->assets_url ) . 'css/admin' . $this->script_suffix . '.css', array(), $this->_version );
 		wp_enqueue_style( $this->_token . '-admin' );
+		if ( in_array( $hook, array( 'edit.php', 'post.php' ), true ) ) {
+			$screen = get_current_screen();
+			if ( in_array( $screen->id, array( 'edit-axe_exhibition', 'axe_exhibition' ), true ) ) {
+				wp_register_style( $this->_token . '-admin-bootstrap', esc_url( $this->assets_url ) . 'css/admin-alerts' . $this->script_suffix . '.css', array(), $this->_version );
+				wp_enqueue_style( $this->_token . '-admin-bootstrap' );
+			}
+		}
 
 	} // End admin_enqueue_styles ()
 
@@ -237,8 +244,10 @@ class Axe_Import {
 	public function admin_enqueue_scripts( $hook = '' ) {
 		wp_register_script( $this->_token . '-admin', esc_url( $this->assets_url ) . 'js/admin' . $this->script_suffix . '.js', array( 'jquery' ), $this->_version, true );
 		wp_enqueue_script( $this->_token . '-admin' );
+
 		wp_register_script( $this->_token . '-admin-confirm', esc_url( $this->assets_url ) . 'js/confirm/jquery-confirm.min.js', array( 'jquery' ), $this->_version, true );
 		wp_enqueue_script( $this->_token . '-admin-confirm' );
+
 	} // End admin_enqueue_scripts ()
 
 	/**

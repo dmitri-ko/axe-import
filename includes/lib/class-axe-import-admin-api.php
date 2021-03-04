@@ -614,7 +614,7 @@ class Axe_Import_Admin_API {
 		}
 
 		// Specify the location where you want to save the image.
-		$img_file   = $filename . ' . ' . $ext;
+		$img_file   = $filename . '.' . $ext;
 		$upload_dir = wp_get_upload_dir();
 		$file_path  = $upload_dir['basedir'] . '/wpallimport/files/' . $img_file;
 		$bytes      = $wp_filesystem->put_contents( $file_path, $bin );
