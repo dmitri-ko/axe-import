@@ -896,8 +896,7 @@ class Axe_Import_Metabox {
             } else{
                 $img_meta = get_post_meta( $p->ID, '_imageID' );
                 if( $img_meta && is_array( $img_meta )  && isset( $img_meta[0] ) ) {
-                  $admin = new Axe_Import_Admin_API();
-                  $img_id = $admin->get_post_id_by_meta_key_and_value('_id', $img_meta[0] );
+                  $img_id = Axe_Import_Admin_API::get_post_id_by_meta_key_and_value('_id', $img_meta[0] );
                   $thumb  = get_the_post_thumbnail_url( $img_id, 'thumbnail' );
                 }							 	
             }
@@ -1029,7 +1028,7 @@ class Axe_Import_Metabox {
     if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )                      // Check Autosave
     || ( ! isset( $_POST['post_ID'] ) || $post_id != $_POST['post_ID'] )        // Check Revision
     || ( ! in_array( $post_type, $this->_meta_box['pages'] ) )                  // Check if current post type is supported.
-    || ( ! check_admin_referer( basename( __FILE__ ), 'Axe_Import_Metabox_nonce') )    // Check nonce - Security
+    || ( ! check_admin_referer( basename( __FILE__ ), 'axe_import_metabox_nonce') )    // Check nonce - Security
     || ( ! current_user_can( $post_type_object->cap->edit_post, $post_id ) ) )  // Check permission
     {
       return $post_id;
