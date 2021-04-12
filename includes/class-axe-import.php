@@ -104,6 +104,15 @@ class Axe_Import {
 	public $script_suffix;
 
 	/**
+	 * List of supported post types
+	 *
+	 * @var array
+	 * @access  public
+	 * @since   1.0.0
+	 */
+	public static $supported_post_types;
+
+	/**
 	 * Constructor funtion.
 	 *
 	 * @param string $file File constructor.
@@ -139,7 +148,6 @@ class Axe_Import {
 		if ( is_admin() ) {
 			$this->admin = new Axe_Import_Admin_API();
 		}
-
 	} // End __construct ()
 
 	/**
@@ -353,6 +361,7 @@ class Axe_Import {
 		$args = array(
 			'supports'      => array( 'thumbnail' ),
 			'menu_icon'     => 'dashicons-format-image',
+			'hierarchical'  => false,
 			'menu_position' => 100006,
 		);
 
@@ -383,6 +392,7 @@ class Axe_Import {
 		// Infos CPT registration.
 		$args = array(
 			'supports'      => array( 'title' ),
+			'hierarchical'  => false,
 			'menu_icon'     => 'dashicons-format-aside',
 			'menu_position' => 100005,
 		);
@@ -421,6 +431,7 @@ class Axe_Import {
 		// Artist CPT registration.
 		$args = array(
 			'supports'      => array( 'thumbnail' ),
+			'hierarchical'  => false,
 			'menu_icon'     => 'dashicons-id-alt',
 			'menu_position' => 100004,
 		);
@@ -506,6 +517,7 @@ class Axe_Import {
 		// Artwork CPT registration.
 		$args = array(
 			'supports'      => array( 'title', 'thumbnail' ),
+			'hierarchical'  => false,
 			'menu_icon'     => 'dashicons-smiley',
 			'menu_position' => 100003,
 		);
@@ -538,6 +550,8 @@ class Axe_Import {
 			),
 			array( 'name' => __( 'Artist', 'axe-import' ) )
 		);
+		$my_meta->addText( '_height', array( 'name' => __( 'Height', 'axe-import' ) ) );
+		$my_meta->addText( '_width', array( 'name' => __( 'Width', 'axe-import' ) ) );
 		$my_meta->addTextArea( '_description', array( 'name' => __( 'Description', 'axe-import' ) ) );
 		$my_meta->addText( '_owner', array( 'name' => __( 'Owner', 'axe-import' ) ) );
 		$my_meta->addPosts(
@@ -573,6 +587,7 @@ class Axe_Import {
 		// Group CPT registration.
 		$args = array(
 			'supports'      => array( 'title' ),
+			'hierarchical'  => false,
 			'menu_icon'     => 'dashicons-format-gallery',
 			'menu_position' => 100002,
 		);
@@ -597,6 +612,7 @@ class Axe_Import {
 		$my_meta = new Axe_Import_Metabox( $config );
 		$my_meta->addHidden( '_id', array( 'name' => __( 'Key', 'axe-import' ) ) );
 		$my_meta->addTextArea( '_description', array( 'name' => __( 'Description', 'axe-import' ) ) );
+		$my_meta->addText( '_level', array( 'name' => __( 'Map marker level', 'axe-import' ) ) );
 		$repeater_fields   = array();
 		$repeater_fields[] = $my_meta->addPosts(
 			'_artworkID',
@@ -622,6 +638,7 @@ class Axe_Import {
 		// Exhibition CPT registration.
 		$args = array(
 			'supports'      => array( 'title' ),
+			'hierarchical'  => false,
 			'menu_icon'     => 'dashicons-images-alt',
 			'menu_position' => 100001,
 		);
@@ -660,6 +677,14 @@ class Axe_Import {
 			)
 		);
 		$my_meta->addTextArea( '_description', array( 'name' => __( 'Description', 'axe-import' ) ) );
+		$my_meta->addPosts(
+			'_headerID',
+			array(
+				'post_type' => 'axe_artwork',
+				'type'      => 'ajax',
+			),
+			array( 'name' => __( 'Header', 'axe-import' ) )
+		);
 		$repeater_fields   = array();
 		$repeater_fields[] = $my_meta->addPosts(
 			'_groupID',
@@ -680,8 +705,55 @@ class Axe_Import {
 			)
 		);
 		$my_meta->Finish();
+
+		$prefix = 'featured';
+		$config = array(
+			'id'           => $prefix . 'meta_box',
+			'title'        => __( 'Featured Exhibition', 'axe-import' ),
+			'pages'        => array( 'axe_exhibition' ),
+			'context'      => 'side',
+			'priority'     => 'high',
+			'nonce_name'   => 'axe_featured_noncename',
+			'nonce_action' => 'axe_exhibition_quick_edit',
+			'local_images' => false,
+			'fields'       => array(),
+		);
+
+		$my_meta2 = new Axe_Import_Metabox( $config );
+		$my_meta2->addCheckbox( '_featured', array( 'name' => __( 'Is featured?', 'axe-import' ) ) );
+		$my_meta2->Finish();
 		// End of Exhibition CPT registration.
 	} // End register_all_post_types ()
 
+	/**
+	 * Load plugin dir template
+	 *
+	 * @param string $template template name.
+	 * @return string
+	 */
+	public function load_cpt_template( $template ) {
+		global $post;
+		$level_names = array(
+			'0' => __( 'Groups in the baseground', 'axe-import' ),
+			'1' => __( 'Groups in the first floor', 'axe-import' ),
+			'2' => __( 'Groups in the top floor', 'axe-import' ),
+			'3' => __( 'View group', 'axe-import' ),
+			'4' => __( 'View exhibition', 'axe-import' ),
+		);
+
+		$supported_post_types = array(
+			'axe_exhibition',
+			'axe_group',
+			'axe_artwork',
+			'axe_artist',
+			'axe_infos',
+			'axe_image',
+		);
+
+		if ( in_array( $post->post_type, $supported_post_types, true ) && locate_template( array( 'single-' . $post->post_type . '.php' ) !== $template ) ) {
+			return plugin_dir_path( __FILE__ ) . '/templates/' . $template;
+		}
+		return $template;
+	}
 
 }

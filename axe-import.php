@@ -31,6 +31,7 @@ require_once 'includes/lib/class-axe-import-post-type.php';
 require_once 'includes/lib/class-axe-import-simplexmlelement.php';
 require_once 'includes/lib/class-axe-import-taxonomy.php';
 require_once 'includes/lib/class-axe-import-metabox.php';
+//require_once 'includes/lib/class-axe-import-exhibition-slider.php';
 require_once 'includes/lib/rapid-addon.php';
 
 /**
@@ -40,7 +41,7 @@ require_once 'includes/lib/rapid-addon.php';
  * @return object Axe_Import
  */
 function axe_import() {
-	$instance = Axe_Import::instance( __FILE__, '1.0.0' );
+	$instance = Axe_Import::instance( __FILE__, '1.0.1' );
 
 	if ( is_null( $instance->settings ) ) {
 		$instance->settings = Axe_Import_Settings::instance( $instance );

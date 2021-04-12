@@ -2,17 +2,20 @@
 # This file is distributed under the same license as the Axe Import plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Axe Import 1.0.1\n"
+"Project-Id-Version: Axe Import 1.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/axe-import\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2021-03-19T11:12:09+00:00\n"
+"PO-Revision-Date: 2021-03-24 17:49+0300\n"
+"Last-Translator: \n"
+"Language-Team: Deutsch\n"
+"Language: de_DE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2021-04-01T17:06:56+00:00\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.4.0\n"
+"X-Generator: Poedit 2.4.2\n"
 "X-Domain: axe-import\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Loco-Version: 2.5.0; wp-5.6.2\n"
 
 #. Plugin Name of the plugin
 msgid "Axe Import"
@@ -36,109 +39,118 @@ msgstr ""
 
 #: build/includes/class-axe-import-settings.php:130
 #: build/includes/class-axe-import-settings.php:132
+#: build/includes/class-axe-import-settings 2.php:130 2.php:132
 #: includes/class-axe-import-settings.php:130
 #: includes/class-axe-import-settings.php:132
 msgid "Axe Import Settings"
 msgstr ""
 
 #: build/includes/class-axe-import-settings.php:179
+#: build/includes/class-axe-import-settings 2.php:179
 #: includes/class-axe-import-settings.php:179
 msgid "Settings"
-msgstr ""
+msgstr "Einstellungen"
 
 #: build/includes/class-axe-import-settings.php:192
-#: build/includes/class-axe-import.php:647
-#: includes/class-axe-import-settings.php:192
-#: includes/class-axe-import.php:648
+#: build/includes/class-axe-import-settings 2.php:192
+#: build/includes/class-axe-import.php:645 build/includes/class-axe-import
+#: 2.php:645 includes/class-axe-import-settings.php:192
+#: includes/class-axe-import.php:645
 msgid "Exhibitions"
-msgstr ""
+msgstr "Ausstellungen"
 
 #: build/includes/class-axe-import-settings.php:193
-#: build/includes/class-axe-import.php:596
-#: build/includes/class-axe-import.php:702
-#: includes/class-axe-import-settings.php:193
-#: includes/class-axe-import.php:597
-#: includes/class-axe-import.php:703
+#: build/includes/class-axe-import-settings 2.php:193
+#: build/includes/class-axe-import.php:594
+#: build/includes/class-axe-import.php:700 build/includes/class-axe-import
+#: 2.php:594 2.php:700 includes/class-axe-import-settings.php:193
+#: includes/class-axe-import.php:594 includes/class-axe-import.php:700
 msgid "Groups"
-msgstr ""
+msgstr "Themengruppen"
 
 #: build/includes/class-axe-import-settings.php:194
+#: build/includes/class-axe-import-settings 2.php:194
 #: build/includes/class-axe-import.php:509
 #: build/includes/class-axe-import.php:526
 #: build/includes/class-axe-import.php:528
-#: build/includes/class-axe-import.php:630
-#: includes/class-axe-import-settings.php:194
-#: includes/class-axe-import.php:510
-#: includes/class-axe-import.php:527
-#: includes/class-axe-import.php:529
-#: includes/class-axe-import.php:631
+#: build/includes/class-axe-import.php:628 build/includes/class-axe-import
+#: 2.php:509 2.php:526 2.php:528 2.php:628
+#: includes/class-axe-import-settings.php:194 includes/class-axe-import.php:509
+#: includes/class-axe-import.php:526 includes/class-axe-import.php:528
+#: includes/class-axe-import.php:628
 msgid "Artworks"
-msgstr ""
+msgstr "Kunstwerke"
 
 #: build/includes/class-axe-import-settings.php:195
+#: build/includes/class-axe-import-settings 2.php:195
 #: build/includes/class-axe-import.php:441
-#: build/includes/class-axe-import.php:443
-#: includes/class-axe-import-settings.php:195
-#: includes/class-axe-import.php:442
-#: includes/class-axe-import.php:444
+#: build/includes/class-axe-import.php:443 build/includes/class-axe-import
+#: 2.php:441 2.php:443 includes/class-axe-import-settings.php:195
+#: includes/class-axe-import.php:441 includes/class-axe-import.php:443
 msgid "Artists"
-msgstr ""
+msgstr "Künstler"
 
 #: build/includes/class-axe-import-settings.php:196
+#: build/includes/class-axe-import-settings 2.php:196
 #: build/includes/class-axe-import.php:402
-#: build/includes/class-axe-import.php:572
-#: build/includes/class-axe-import.php:579
-#: includes/class-axe-import-settings.php:196
-#: includes/class-axe-import.php:403
-#: includes/class-axe-import.php:573
-#: includes/class-axe-import.php:580
+#: build/includes/class-axe-import.php:570
+#: build/includes/class-axe-import.php:577 build/includes/class-axe-import
+#: 2.php:402 2.php:570 2.php:577 includes/class-axe-import-settings.php:196
+#: includes/class-axe-import.php:402 includes/class-axe-import.php:570
+#: includes/class-axe-import.php:577
 msgid "Infos"
 msgstr ""
 
 #: build/includes/class-axe-import-settings.php:197
-#: build/includes/class-axe-import.php:370
-#: includes/class-axe-import-settings.php:197
-#: includes/class-axe-import.php:371
+#: build/includes/class-axe-import-settings 2.php:197
+#: build/includes/class-axe-import.php:370 build/includes/class-axe-import
+#: 2.php:370 includes/class-axe-import-settings.php:197
+#: includes/class-axe-import.php:370
 msgid "Images"
-msgstr ""
+msgstr "Bilder"
 
 #: build/includes/class-axe-import-settings.php:201
+#: build/includes/class-axe-import-settings 2.php:201
 #: includes/class-axe-import-settings.php:201
 msgid "Standard"
 msgstr ""
 
 #: build/includes/class-axe-import-settings.php:205
+#: build/includes/class-axe-import-settings 2.php:205
 #: includes/class-axe-import-settings.php:205
 msgid "Import name"
 msgstr ""
 
 #: build/includes/class-axe-import-settings.php:212
+#: build/includes/class-axe-import-settings 2.php:212
 #: includes/class-axe-import-settings.php:212
 msgid "Content types to import"
 msgstr ""
 
 #: build/includes/class-axe-import-settings.php:309
+#: build/includes/class-axe-import-settings 2.php:309
 #: includes/class-axe-import-settings.php:309
 msgid "Plugin Settings"
-msgstr ""
+msgstr "Plugin Einstellungen"
 
 #: build/includes/class-axe-import-settings.php:363
+#: build/includes/class-axe-import-settings 2.php:363
 #: includes/class-axe-import-settings.php:363
 msgid "Save Settings"
-msgstr ""
+msgstr "Einstellungen speichern"
 
-#: build/includes/class-axe-import.php:371
-#: includes/class-axe-import.php:372
+#: build/includes/class-axe-import.php:371 build/includes/class-axe-import
+#: 2.php:371 includes/class-axe-import.php:371
 msgid "image"
 msgstr ""
 
-#: build/includes/class-axe-import.php:372
-#: includes/class-axe-import.php:373
+#: build/includes/class-axe-import.php:372 build/includes/class-axe-import
+#: 2.php:372 includes/class-axe-import.php:372
 msgid "Images for exhibitions"
 msgstr ""
 
-#: build/includes/class-axe-import.php:378
-#: includes/class-axe-import.php:379
+#: build/includes/class-axe-import.php:378 build/includes/class-axe-import
+#: 2.php:378 includes/class-axe-import.php:378
 msgid "Dimensions"
 msgstr ""
 
@@ -146,254 +158,220 @@ msgstr ""
 #: build/includes/class-axe-import.php:418
 #: build/includes/class-axe-import.php:457
 #: build/includes/class-axe-import.php:543
-#: build/includes/class-axe-import.php:613
-#: build/includes/class-axe-import.php:664
-#: includes/class-axe-import.php:387
-#: includes/class-axe-import.php:419
-#: includes/class-axe-import.php:458
-#: includes/class-axe-import.php:544
-#: includes/class-axe-import.php:614
-#: includes/class-axe-import.php:665
+#: build/includes/class-axe-import.php:611
+#: build/includes/class-axe-import.php:662 build/includes/class-axe-import
+#: 2.php:386 2.php:418 2.php:457 2.php:543 2.php:611 2.php:662
+#: includes/class-axe-import.php:386 includes/class-axe-import.php:418
+#: includes/class-axe-import.php:457 includes/class-axe-import.php:543
+#: includes/class-axe-import.php:611 includes/class-axe-import.php:662
 msgid "Key"
 msgstr ""
 
-#: build/includes/class-axe-import.php:387
-#: build/includes/class-axe-import.php:554
-#: build/includes/lib/class-axe-import-admin-api.php:82
+#: build/includes/class-axe-import.php:387 build/includes/class-axe-import
+#: 2.php:387 build/includes/lib/class-axe-import-admin-api.php:82
 #: build/includes/lib/class-axe-import-admin-api 2.php:82
-#: includes/class-axe-import.php:388
-#: includes/class-axe-import.php:555
+#: includes/class-axe-import.php:387
 #: includes/lib/class-axe-import-admin-api.php:82
 msgid "Width"
-msgstr ""
+msgstr "Breitenmaß"
 
-#: build/includes/class-axe-import.php:388
-#: build/includes/class-axe-import.php:553
-#: build/includes/lib/class-axe-import-admin-api.php:83
+#: build/includes/class-axe-import.php:388 build/includes/class-axe-import
+#: 2.php:388 build/includes/lib/class-axe-import-admin-api.php:83
 #: build/includes/lib/class-axe-import-admin-api 2.php:83
-#: includes/class-axe-import.php:389
-#: includes/class-axe-import.php:554
+#: includes/class-axe-import.php:388
 #: includes/lib/class-axe-import-admin-api.php:83
 msgid "Height"
-msgstr ""
+msgstr "Höhenmaß"
 
-#: build/includes/class-axe-import.php:403
-#: includes/class-axe-import.php:404
+#: build/includes/class-axe-import.php:403 build/includes/class-axe-import
+#: 2.php:403 includes/class-axe-import.php:403
 msgid "info"
 msgstr ""
 
-#: build/includes/class-axe-import.php:404
-#: includes/class-axe-import.php:405
+#: build/includes/class-axe-import.php:404 build/includes/class-axe-import
+#: 2.php:404 includes/class-axe-import.php:404
 msgid "Image infos"
 msgstr ""
 
-#: build/includes/class-axe-import.php:410
-#: includes/class-axe-import.php:411
+#: build/includes/class-axe-import.php:410 build/includes/class-axe-import
+#: 2.php:410 includes/class-axe-import.php:410
 msgid "Details"
 msgstr ""
 
 #: build/includes/class-axe-import.php:419
 #: build/includes/class-axe-import.php:486
-#: build/includes/class-axe-import.php:555
-#: build/includes/class-axe-import.php:614
-#: build/includes/class-axe-import.php:679
+#: build/includes/class-axe-import.php:553
+#: build/includes/class-axe-import.php:612
+#: build/includes/class-axe-import.php:677 build/includes/class-axe-import
+#: 2.php:419 2.php:486 2.php:553 2.php:612 2.php:677
 #: build/includes/lib/class-axe-import-admin-api.php:73
 #: build/includes/lib/class-axe-import-admin-api 2.php:73
-#: includes/class-axe-import.php:420
-#: includes/class-axe-import.php:487
-#: includes/class-axe-import.php:556
-#: includes/class-axe-import.php:615
-#: includes/class-axe-import.php:680
+#: includes/class-axe-import.php:419 includes/class-axe-import.php:486
+#: includes/class-axe-import.php:553 includes/class-axe-import.php:612
+#: includes/class-axe-import.php:677
 #: includes/lib/class-axe-import-admin-api.php:73
 msgid "Description"
-msgstr ""
+msgstr "Beschreibung"
 
 #: build/includes/class-axe-import.php:426
 #: build/includes/class-axe-import.php:493
-#: build/includes/class-axe-import.php:563
-#: includes/class-axe-import.php:427
-#: includes/class-axe-import.php:494
-#: includes/class-axe-import.php:564
+#: build/includes/class-axe-import.php:561 build/includes/class-axe-import
+#: 2.php:426 2.php:493 2.php:561 includes/class-axe-import.php:426
+#: includes/class-axe-import.php:493 includes/class-axe-import.php:561
 msgid "Image"
 msgstr ""
 
-#: build/includes/class-axe-import.php:442
-#: includes/class-axe-import.php:443
+#: build/includes/class-axe-import.php:442 build/includes/class-axe-import
+#: 2.php:442 includes/class-axe-import.php:442
 msgid "artist"
 msgstr ""
 
-#: build/includes/class-axe-import.php:449
-#: includes/class-axe-import.php:450
+#: build/includes/class-axe-import.php:449 build/includes/class-axe-import
+#: 2.php:449 includes/class-axe-import.php:449
 msgid "Artist information"
 msgstr ""
 
-#: build/includes/class-axe-import.php:461
-#: build/includes/lib/class-axe-import-admin-api.php:92
+#: build/includes/class-axe-import.php:461 build/includes/class-axe-import
+#: 2.php:461 build/includes/lib/class-axe-import-admin-api.php:92
 #: build/includes/lib/class-axe-import-admin-api 2.php:92
-#: includes/class-axe-import.php:462
+#: includes/class-axe-import.php:461
 #: includes/lib/class-axe-import-admin-api.php:92
 msgid "First Name"
-msgstr ""
+msgstr "Vorname"
 
-#: build/includes/class-axe-import.php:468
-#: build/includes/lib/class-axe-import-admin-api.php:93
+#: build/includes/class-axe-import.php:468 build/includes/class-axe-import
+#: 2.php:468 build/includes/lib/class-axe-import-admin-api.php:93
 #: build/includes/lib/class-axe-import-admin-api 2.php:93
-#: includes/class-axe-import.php:469
+#: includes/class-axe-import.php:468
 #: includes/lib/class-axe-import-admin-api.php:93
 msgid "Name"
-msgstr ""
+msgstr "Nachname"
 
-#: build/includes/class-axe-import.php:475
-#: build/includes/lib/class-axe-import-admin-api.php:94
+#: build/includes/class-axe-import.php:475 build/includes/class-axe-import
+#: 2.php:475 build/includes/lib/class-axe-import-admin-api.php:94
 #: build/includes/lib/class-axe-import-admin-api 2.php:94
-#: includes/class-axe-import.php:476
+#: includes/class-axe-import.php:475
 #: includes/lib/class-axe-import-admin-api.php:94
 msgid "Birth"
 msgstr ""
 
-#: build/includes/class-axe-import.php:482
-#: build/includes/lib/class-axe-import-admin-api.php:95
+#: build/includes/class-axe-import.php:482 build/includes/class-axe-import
+#: 2.php:482 build/includes/lib/class-axe-import-admin-api.php:95
 #: build/includes/lib/class-axe-import-admin-api 2.php:95
-#: includes/class-axe-import.php:483
+#: includes/class-axe-import.php:482
 #: includes/lib/class-axe-import-admin-api.php:95
 msgid "Death"
 msgstr ""
 
 #: build/includes/class-axe-import.php:502
-#: build/includes/class-axe-import.php:623
-#: includes/class-axe-import.php:503
-#: includes/class-axe-import.php:624
+#: build/includes/class-axe-import.php:621 build/includes/class-axe-import
+#: 2.php:502 2.php:621 includes/class-axe-import.php:502
+#: includes/class-axe-import.php:621
 msgid "Artwork"
 msgstr ""
 
-#: build/includes/class-axe-import.php:527
-#: includes/class-axe-import.php:528
+#: build/includes/class-axe-import.php:527 build/includes/class-axe-import
+#: 2.php:527 includes/class-axe-import.php:527
 msgid "artwork"
 msgstr ""
 
-#: build/includes/class-axe-import.php:535
-#: includes/class-axe-import.php:536
+#: build/includes/class-axe-import.php:535 build/includes/class-axe-import
+#: 2.php:535 includes/class-axe-import.php:535
 msgid "Artwork information"
 msgstr ""
 
-#: build/includes/class-axe-import.php:544
-#: build/includes/lib/class-axe-import-admin-api.php:103
+#: build/includes/class-axe-import.php:544 build/includes/class-axe-import
+#: 2.php:544 build/includes/lib/class-axe-import-admin-api.php:103
 #: build/includes/lib/class-axe-import-admin-api 2.php:103
-#: includes/class-axe-import.php:545
+#: includes/class-axe-import.php:544
 #: includes/lib/class-axe-import-admin-api.php:103
 msgid "Year of establishment"
-msgstr ""
+msgstr "Entstehungsdatum"
 
-#: build/includes/class-axe-import.php:551
-#: includes/class-axe-import.php:552
+#: build/includes/class-axe-import.php:551 build/includes/class-axe-import
+#: 2.php:551 includes/class-axe-import.php:551
 msgid "Artist"
 msgstr ""
 
-#: build/includes/class-axe-import.php:556
-#: build/includes/lib/class-axe-import-admin-api.php:105
+#: build/includes/class-axe-import.php:554 build/includes/class-axe-import
+#: 2.php:554 build/includes/lib/class-axe-import-admin-api.php:105
 #: build/includes/lib/class-axe-import-admin-api 2.php:105
-#: includes/class-axe-import.php:557
+#: includes/class-axe-import.php:554
 #: includes/lib/class-axe-import-admin-api.php:105
 msgid "Owner"
-msgstr ""
+msgstr "Eigentümer"
 
-#: build/includes/class-axe-import.php:597
-#: includes/class-axe-import.php:598
+#: build/includes/class-axe-import.php:595 build/includes/class-axe-import
+#: 2.php:595 includes/class-axe-import.php:595
 msgid "group"
 msgstr ""
 
-#: build/includes/class-axe-import.php:598
-#: includes/class-axe-import.php:599
+#: build/includes/class-axe-import.php:596 build/includes/class-axe-import
+#: 2.php:596 includes/class-axe-import.php:596
 msgid "Groups of artwork"
 msgstr ""
 
-#: build/includes/class-axe-import.php:605
-#: includes/class-axe-import.php:606
+#: build/includes/class-axe-import.php:603 build/includes/class-axe-import
+#: 2.php:603 includes/class-axe-import.php:603
 msgid "Group information"
 msgstr ""
 
-#: build/includes/class-axe-import.php:615
-#: build/includes/lib/class-axe-import-admin-api.php:113
+#: build/includes/class-axe-import.php:613 build/includes/class-axe-import
+#: 2.php:613 build/includes/lib/class-axe-import-admin-api.php:113
 #: build/includes/lib/class-axe-import-admin-api 2.php:113
-#: includes/class-axe-import.php:616
+#: includes/class-axe-import.php:613
 #: includes/lib/class-axe-import-admin-api.php:113
 msgid "Map marker level"
 msgstr ""
 
-#: build/includes/class-axe-import.php:648
-#: includes/class-axe-import.php:649
+#: build/includes/class-axe-import.php:646 build/includes/class-axe-import
+#: 2.php:646 includes/class-axe-import.php:646
 msgid "exhibition"
 msgstr ""
 
-#: build/includes/class-axe-import.php:649
-#: includes/class-axe-import.php:650
+#: build/includes/class-axe-import.php:647 build/includes/class-axe-import
+#: 2.php:647 includes/class-axe-import.php:647
 msgid "Exhibitions of artwork"
 msgstr ""
 
-#: build/includes/class-axe-import.php:656
-#: includes/class-axe-import.php:657
+#: build/includes/class-axe-import.php:654 build/includes/class-axe-import
+#: 2.php:654 includes/class-axe-import.php:654
 msgid "Exhibition information"
 msgstr ""
 
-#: build/includes/class-axe-import.php:668
-#: includes/class-axe-import.php:669
+#: build/includes/class-axe-import.php:666 build/includes/class-axe-import
+#: 2.php:666 includes/class-axe-import.php:666
 msgid "Exhibition starts"
-msgstr ""
+msgstr "Ausstellungsbeginn"
 
-#: build/includes/class-axe-import.php:675
-#: includes/class-axe-import.php:676
+#: build/includes/class-axe-import.php:673 build/includes/class-axe-import
+#: 2.php:673 includes/class-axe-import.php:673
 msgid "Exhibition ends"
-msgstr ""
+msgstr "Ausstellungsende"
 
-#: build/includes/class-axe-import.php:686
-#: includes/class-axe-import.php:687
+#: build/includes/class-axe-import.php:684 build/includes/class-axe-import
+#: 2.php:684 includes/class-axe-import.php:684
 msgid "Header"
 msgstr ""
 
-#: build/includes/class-axe-import.php:695
-#: includes/class-axe-import.php:696
+#: build/includes/class-axe-import.php:693 build/includes/class-axe-import
+#: 2.php:693 includes/class-axe-import.php:693
 msgid "Group"
 msgstr ""
 
-#: build/includes/class-axe-import.php:712
-#: includes/class-axe-import.php:713
+#: build/includes/class-axe-import.php:710 build/includes/class-axe-import
+#: 2.php:710 includes/class-axe-import.php:710
 msgid "Featured Exhibition"
-msgstr ""
+msgstr "Empfohlene Ausstellung"
 
-#: build/includes/class-axe-import.php:723
-#: build/includes/lib/class-axe-import-admin-api.php:1655
+#: build/includes/class-axe-import.php:721 build/includes/class-axe-import
+#: 2.php:721 build/includes/lib/class-axe-import-admin-api.php:1655
 #: build/includes/lib/class-axe-import-admin-api.php:1701
-#: build/includes/lib/class-axe-import-admin-api 2.php:1655
-#: build/includes/lib/class-axe-import-admin-api 2.php:1701
-#: includes/class-axe-import.php:724
+#: build/includes/lib/class-axe-import-admin-api 2.php:1655 2.php:1701
+#: includes/class-axe-import.php:721
 #: includes/lib/class-axe-import-admin-api.php:1655
 #: includes/lib/class-axe-import-admin-api.php:1701
 msgid "Is featured?"
-msgstr ""
-
-#: build/includes/class-axe-import.php:737
-#: includes/class-axe-import.php:738
-msgid "Groups in the baseground"
-msgstr ""
-
-#: build/includes/class-axe-import.php:738
-#: includes/class-axe-import.php:739
-msgid "Groups in the first floor"
-msgstr ""
-
-#: build/includes/class-axe-import.php:739
-#: includes/class-axe-import.php:740
-msgid "Groups in the top floor"
-msgstr ""
-
-#: build/includes/class-axe-import.php:740
-#: includes/class-axe-import.php:741
-msgid "View group"
-msgstr ""
-
-#: build/includes/class-axe-import.php:741
-#: includes/class-axe-import.php:742
-msgid "View exhibition"
 msgstr ""
 
 #: build/includes/lib/class-axe-import-admin-api.php:66
@@ -454,7 +432,7 @@ msgstr ""
 #: build/includes/lib/class-axe-import-admin-api 2.php:111
 #: includes/lib/class-axe-import-admin-api.php:111
 msgid "Group Settings"
-msgstr ""
+msgstr "Gruppen Einstellungen"
 
 #: build/includes/lib/class-axe-import-admin-api.php:119
 #: build/includes/lib/class-axe-import-admin-api 2.php:119
@@ -466,24 +444,23 @@ msgstr ""
 #: build/includes/lib/class-axe-import-admin-api 2.php:121
 #: includes/lib/class-axe-import-admin-api.php:121
 msgid "Exhibition image"
-msgstr ""
+msgstr "Ausstellungsbild"
 
 #: build/includes/lib/class-axe-import-admin-api.php:122
 #: build/includes/lib/class-axe-import-admin-api 2.php:122
 #: includes/lib/class-axe-import-admin-api.php:122
 msgid "Exhibition Starts"
-msgstr ""
+msgstr "Ausstellungsbeginn"
 
 #: build/includes/lib/class-axe-import-admin-api.php:123
 #: build/includes/lib/class-axe-import-admin-api 2.php:123
 #: includes/lib/class-axe-import-admin-api.php:123
 msgid "Exhibition Ends"
-msgstr ""
+msgstr "Ausstellungsende"
 
 #: build/includes/lib/class-axe-import-admin-api.php:400
 #: build/includes/lib/class-axe-import-admin-api.php:481
-#: build/includes/lib/class-axe-import-admin-api 2.php:400
-#: build/includes/lib/class-axe-import-admin-api 2.php:481
+#: build/includes/lib/class-axe-import-admin-api 2.php:400 2.php:481
 #: includes/lib/class-axe-import-admin-api.php:400
 #: includes/lib/class-axe-import-admin-api.php:481
 msgid "Sorry, your nonce did not verify"
@@ -516,7 +493,9 @@ msgstr ""
 #: build/includes/lib/class-axe-import-admin-api.php:535
 #: build/includes/lib/class-axe-import-admin-api 2.php:535
 #: includes/lib/class-axe-import-admin-api.php:535
-msgid "What do you want to do with images which are referenced from the other exhibitions?"
+msgid ""
+"What do you want to do with images which are referenced from the other "
+"exhibitions?"
 msgstr ""
 
 #: build/includes/lib/class-axe-import-admin-api.php:536
@@ -528,10 +507,8 @@ msgstr ""
 #: build/includes/lib/class-axe-import-admin-api.php:537
 #: build/includes/lib/class-axe-import-admin-api.php:1332
 #: build/includes/lib/class-axe-import-admin-api.php:1390
-#: build/includes/lib/class-axe-import-admin-api 2.php:537
-#: build/includes/lib/class-axe-import-admin-api 2.php:1332
-#: build/includes/lib/class-axe-import-admin-api 2.php:1390
-#: includes/lib/class-axe-import-admin-api.php:537
+#: build/includes/lib/class-axe-import-admin-api 2.php:537 2.php:1332
+#: 2.php:1390 includes/lib/class-axe-import-admin-api.php:537
 #: includes/lib/class-axe-import-admin-api.php:1332
 #: includes/lib/class-axe-import-admin-api.php:1390
 msgid "Delete"
@@ -583,26 +560,28 @@ msgstr ""
 #: build/includes/lib/class-axe-import-admin-api.php:986
 #: build/includes/lib/class-axe-import-admin-api 2.php:986
 #: includes/lib/class-axe-import-admin-api.php:986
-msgid "The Axe Import Add-On requires WP All Import <a href=\"http://wordpress.org/plugins/wp-all-import\" target=\"_blank\">Free</a>."
+msgid ""
+"The Axe Import Add-On requires WP All Import <a href=\"http://wordpress.org/"
+"plugins/wp-all-import\" target=\"_blank\">Free</a>."
 msgstr ""
 
 #: build/includes/lib/class-axe-import-admin-api.php:1230
 #: build/includes/lib/class-axe-import-admin-api.php:1262
 #: build/includes/lib/class-axe-import-admin-api.php:1263
-#: build/includes/lib/class-axe-import-admin-api 2.php:1230
-#: build/includes/lib/class-axe-import-admin-api 2.php:1262
-#: build/includes/lib/class-axe-import-admin-api 2.php:1263
-#: includes/lib/class-axe-import-admin-api.php:1230
+#: build/includes/lib/class-axe-import-admin-api 2.php:1230 2.php:1262
+#: 2.php:1263 includes/lib/class-axe-import-admin-api.php:1230
 #: includes/lib/class-axe-import-admin-api.php:1262
 #: includes/lib/class-axe-import-admin-api.php:1263
 msgid "Import Exhibition"
-msgstr ""
+msgstr "Ausstellungen importieren"
 
 #. translators: the name of import.
 #: build/includes/lib/class-axe-import-admin-api.php:1236
 #: build/includes/lib/class-axe-import-admin-api 2.php:1236
 #: includes/lib/class-axe-import-admin-api.php:1236
-msgid "Could not find any import with the name %s. Please create an import using Wp All Import menu."
+msgid ""
+"Could not find any import with the name %s. Please create an import using Wp "
+"All Import menu."
 msgstr ""
 
 #: build/includes/lib/class-axe-import-admin-api.php:1309
@@ -616,11 +595,8 @@ msgstr ""
 #: build/includes/lib/class-axe-import-admin-api.php:1486
 #: build/includes/lib/class-axe-import-admin-api.php:1559
 #: build/includes/lib/class-axe-import-admin-api.php:1633
-#: build/includes/lib/class-axe-import-admin-api 2.php:1353
-#: build/includes/lib/class-axe-import-admin-api 2.php:1428
-#: build/includes/lib/class-axe-import-admin-api 2.php:1486
-#: build/includes/lib/class-axe-import-admin-api 2.php:1559
-#: build/includes/lib/class-axe-import-admin-api 2.php:1633
+#: build/includes/lib/class-axe-import-admin-api 2.php:1353 2.php:1428
+#: 2.php:1486 2.php:1559 2.php:1633
 #: includes/lib/class-axe-import-admin-api.php:1353
 #: includes/lib/class-axe-import-admin-api.php:1428
 #: includes/lib/class-axe-import-admin-api.php:1486
@@ -637,8 +613,7 @@ msgstr ""
 
 #: build/includes/lib/class-axe-import-admin-api.php:1443
 #: build/includes/lib/class-axe-import-admin-api.php:1500
-#: build/includes/lib/class-axe-import-admin-api 2.php:1443
-#: build/includes/lib/class-axe-import-admin-api 2.php:1500
+#: build/includes/lib/class-axe-import-admin-api 2.php:1443 2.php:1500
 #: includes/lib/class-axe-import-admin-api.php:1443
 #: includes/lib/class-axe-import-admin-api.php:1500
 msgid "Do you really want to restore the exhibition?"
@@ -646,8 +621,7 @@ msgstr ""
 
 #: build/includes/lib/class-axe-import-admin-api.php:1465
 #: build/includes/lib/class-axe-import-admin-api.php:1522
-#: build/includes/lib/class-axe-import-admin-api 2.php:1465
-#: build/includes/lib/class-axe-import-admin-api 2.php:1522
+#: build/includes/lib/class-axe-import-admin-api 2.php:1465 2.php:1522
 #: includes/lib/class-axe-import-admin-api.php:1465
 #: includes/lib/class-axe-import-admin-api.php:1522
 msgid "Restore"
@@ -666,106 +640,127 @@ msgid "Update"
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:103
+#: build/includes/lib/class-axe-import-post-type 2.php:103
 #: includes/lib/class-axe-import-post-type.php:103
 msgid "Add New"
-msgstr ""
+msgstr "Erstellen"
 
 #: build/includes/lib/class-axe-import-post-type.php:104
+#: build/includes/lib/class-axe-import-post-type 2.php:104
 #: includes/lib/class-axe-import-post-type.php:104
 msgid "Add New %s"
-msgstr ""
+msgstr "%s erstellen"
 
 #: build/includes/lib/class-axe-import-post-type.php:105
+#: build/includes/lib/class-axe-import-post-type 2.php:105
 #: includes/lib/class-axe-import-post-type.php:105
 msgid "Edit %s"
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:106
+#: build/includes/lib/class-axe-import-post-type 2.php:106
 #: includes/lib/class-axe-import-post-type.php:106
 msgid "New %s"
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:107
+#: build/includes/lib/class-axe-import-post-type 2.php:107
 #: includes/lib/class-axe-import-post-type.php:107
 msgid "All %s"
-msgstr ""
+msgstr "%s verwalten"
 
 #: build/includes/lib/class-axe-import-post-type.php:108
+#: build/includes/lib/class-axe-import-post-type 2.php:108
 #: includes/lib/class-axe-import-post-type.php:108
 msgid "View %s"
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:109
+#: build/includes/lib/class-axe-import-post-type 2.php:109
 #: includes/lib/class-axe-import-post-type.php:109
 msgid "Search %s"
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:110
+#: build/includes/lib/class-axe-import-post-type 2.php:110
 #: includes/lib/class-axe-import-post-type.php:110
 msgid "No %s Found"
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:111
+#: build/includes/lib/class-axe-import-post-type 2.php:111
 #: includes/lib/class-axe-import-post-type.php:111
 msgid "No %s Found In Trash"
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:156
+#: build/includes/lib/class-axe-import-post-type 2.php:156
 #: includes/lib/class-axe-import-post-type.php:156
 msgid "%1$s updated. %2$sView %3$s%4$s."
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:157
+#: build/includes/lib/class-axe-import-post-type 2.php:157
 #: includes/lib/class-axe-import-post-type.php:157
 msgid "Custom field updated."
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:158
+#: build/includes/lib/class-axe-import-post-type 2.php:158
 #: includes/lib/class-axe-import-post-type.php:158
 msgid "Custom field deleted."
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:159
+#: build/includes/lib/class-axe-import-post-type 2.php:159
 #: includes/lib/class-axe-import-post-type.php:159
 msgid "%1$s updated."
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:160
+#: build/includes/lib/class-axe-import-post-type 2.php:160
 #: includes/lib/class-axe-import-post-type.php:160
 msgid "%1$s restored to revision from %2$s."
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:161
+#: build/includes/lib/class-axe-import-post-type 2.php:161
 #: includes/lib/class-axe-import-post-type.php:161
 msgid "%1$s published. %2$sView %3$s%4s."
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:162
+#: build/includes/lib/class-axe-import-post-type 2.php:162
 #: includes/lib/class-axe-import-post-type.php:162
 msgid "%1$s saved."
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:163
+#: build/includes/lib/class-axe-import-post-type 2.php:163
 #: includes/lib/class-axe-import-post-type.php:163
 msgid "%1$s submitted. %2$sPreview post%3$s%4$s."
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:164
+#: build/includes/lib/class-axe-import-post-type 2.php:164
 #: includes/lib/class-axe-import-post-type.php:164
 msgid "%1$s scheduled for: %2$s. %3$sPreview %4$s%5$s."
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:164
+#: build/includes/lib/class-axe-import-post-type 2.php:164
 #: includes/lib/class-axe-import-post-type.php:164
 msgid "M j, Y @ G:i"
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:165
+#: build/includes/lib/class-axe-import-post-type 2.php:165
 #: includes/lib/class-axe-import-post-type.php:165
 msgid "%1$s draft updated. %2$sPreview %3$s%4$s."
 msgstr ""
 
 #: build/includes/lib/class-axe-import-post-type.php:183
+#: build/includes/lib/class-axe-import-post-type 2.php:183
 #: includes/lib/class-axe-import-post-type.php:183
 msgid "%1$s %2$s updated."
 msgid_plural "%1$s %3$s updated."
@@ -773,6 +768,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: build/includes/lib/class-axe-import-post-type.php:184
+#: build/includes/lib/class-axe-import-post-type 2.php:184
 #: includes/lib/class-axe-import-post-type.php:184
 msgid "%1$s %2$s not updated, somebody is editing it."
 msgid_plural "%1$s %3$s not updated, somebody is editing them."
@@ -780,6 +776,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: build/includes/lib/class-axe-import-post-type.php:185
+#: build/includes/lib/class-axe-import-post-type 2.php:185
 #: includes/lib/class-axe-import-post-type.php:185
 msgid "%1$s %2$s permanently deleted."
 msgid_plural "%1$s %3$s permanently deleted."
@@ -787,6 +784,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: build/includes/lib/class-axe-import-post-type.php:186
+#: build/includes/lib/class-axe-import-post-type 2.php:186
 #: includes/lib/class-axe-import-post-type.php:186
 msgid "%1$s %2$s moved to the Trash."
 msgid_plural "%1$s %3$s moved to the Trash."
@@ -794,12 +792,29 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: build/includes/lib/class-axe-import-post-type.php:187
+#: build/includes/lib/class-axe-import-post-type 2.php:187
 #: includes/lib/class-axe-import-post-type.php:187
 msgid "%1$s %2$s restored from the Trash."
 msgid_plural "%1$s %3$s restored from the Trash."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-axe-import.php:219
-msgid "%1$d of %2$d"
-msgstr ""
+#: includes/class-axe-import.php:735
+msgid "Groups in the baseground"
+msgstr "Themengruppen im Erdgeschoss"
+
+#: includes/class-axe-import.php:736
+msgid "Groups in the first floor"
+msgstr "Themengruppen im 1. Obergeschoss"
+
+#: includes/class-axe-import.php:737
+msgid "Groups in the top floor"
+msgstr "Themengruppen im Dachgeschoss"
+
+#: includes/class-axe-import.php:738
+msgid "View group"
+msgstr "Gruppe ansehen"
+
+#: includes/class-axe-import.php:739
+msgid "View exhibition"
+msgstr "Ausstellung besuchen"

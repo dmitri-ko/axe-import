@@ -6,7 +6,7 @@ const gulp = require('gulp'),
     rigger = require('gulp-rigger'),
     imagemin = require('gulp-imagemin'),
     sourcemaps = require('gulp-sourcemaps'),
-    sass = require('gulp-sass'),
+   // sass = require('gulp-sass'),
     prefixer = require('gulp-autoprefixer'),
     del = require('del'),
     cssmin = require('gulp-clean-css'),
@@ -31,6 +31,7 @@ const path = {
         js: 'assets/js/**/*.js',//В стилях и скриптах нам понадобятся только main файлы
         img: 'assets/images/**/*.*', //Синтаксис img/**/*.* означает - взять все файлы всех расширений из папки и из вложенных каталогов
         style: 'assets/css/*.scss',
+        css: 'assets/css/*.css',
         fonts: 'assets/fonts/**/*.*',
         php: ['**/*.php','readme.*', 'lang/**/*.mo' ],
         doc: '/Documents/**/*.*',
@@ -40,6 +41,7 @@ const path = {
         js: 'assets/js/*.js',//В стилях и скриптах нам понадобятся только main файлы
         img: 'assets/images/**/*.*', //Синтаксис img/**/*.* означает - взять все файлы всех расширений из папки и из вложенных каталогов
         style: 'assets/css/*.scss',
+        css: 'assets/css/*.css',
         fonts: 'assets/fonts/**/*.*',
         php: ['**/*.php','readme.*' ],
         doc: '/Documents/**/*.*',
@@ -112,6 +114,22 @@ function style() {
         .pipe(gulp.dest(path.build.css));
 }
 
+function css() {
+    return gulp.src(path.src.css) //Выберем наш main.scss
+        .pipe(plumber({
+            errorHandler: function (err) {
+                notify.onError({
+                    title: "Gulp error in " + err.plugin,
+                    message: err.toString()
+                })(err);
+            }
+        }))
+        .pipe(gulp.dest(path.build.css))
+        .pipe(cssmin()) 
+        .pipe(rename({ suffix: '.min' }))
+        .pipe(gulp.dest(path.build.css));
+}
+
 function fonts() {
     return gulp.src(path.src.fonts)
         .pipe(plumber({
@@ -146,7 +164,8 @@ function copy() {
 function watch() {
     //watcher(path.watch.plugin, copy);
     watcher(path.watch.js, js);
-    watcher(path.watch.style, style);
+   // watcher(path.watch.style, style);
+    watcher(path.watch.css, css);
     watcher(path.watch.img, image);
     watcher(path.watch.php, php);
     watcher(path.watch.doc, doc);
@@ -156,14 +175,14 @@ function clean() {
     return del([path.clean], {force:true});
 }
 
-const build = gulp.series(clean, gulp.parallel(php, doc, js, style, fonts, image), copy);
+const build = gulp.series(clean, gulp.parallel(php, doc, js, css, /*style,*/ fonts, image), copy);
 const all = gulp.series(build, watch);
 
 exports.copy = copy;
 exports.php = php;
 exports.doc = doc;
 exports.images = image;
-exports.css = style;
+//exports.css = style;
 exports.js = js;
 exports.clean = clean;
 exports.build = build;

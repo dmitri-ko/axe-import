@@ -126,15 +126,14 @@ class Axe_Import_Settings {
 		return apply_filters(
 			$this->base . 'menu_settings',
 			array(
-				'location'    => 'options', // Possible settings: options, menu, submenu.
-				'parent_slug' => 'options-general.php',
-				'page_title'  => __( 'Plugin Settings', 'axe-import' ),
-				'menu_title'  => __( 'Plugin Settings', 'axe-import' ),
-				'capability'  => 'manage_options',
-				'menu_slug'   => $this->parent->_token . '_settings',
-				'function'    => array( $this, 'settings_page' ),
-				'icon_url'    => '',
-				'position'    => null,
+				'location'   => 'menu', // Possible settings: options, menu, submenu.
+				'page_title' => __( 'Axe Import Settings', 'axe-import' ),
+				'position'   => 2,
+				'menu_title' => __( 'Axe Import Settings', 'axe-import' ),
+				'capability' => 'manage_options',
+				'menu_slug'  => $this->parent->_token . '_settings',
+				'function'   => array( $this, 'settings_page' ),
+				'icon_url'   => '',
 			)
 		);
 	}
@@ -189,17 +188,35 @@ class Axe_Import_Settings {
 	 */
 	private function settings_fields() {
 
+		$types = array(
+			'axe_exhibition' => __( 'Exhibitions', 'axe-import' ),
+			'axe_group'      => __( 'Groups', 'axe-import' ),
+			'axe_artwork'    => __( 'Artworks', 'axe-import' ),
+			'axe_artist'     => __( 'Artists', 'axe-import' ),
+			'axe_infos'      => __( 'Infos', 'axe-import' ),
+			'axe_image'      => __( 'Images', 'axe-import' ),
+		);
+
 		$settings['standard'] = array(
-			'title'       => __( 'Standard', 'axe-import' ),
-			'fields'      => array(
+			'title'  => __( 'Standard', 'axe-import' ),
+			'fields' => array(
 				array(
 					'id'          => 'import_name',
 					'label'       => __( 'Import name', 'axe-import' ),
-					'description' => __( 'The name you should assign to the WP All Import import.', 'axe-import' ),
+					'description' => '',
 					'type'        => 'text',
 					'default'     => 'Axe Import',
 				),
+				array(
+					'id'          => 'import_types',
+					'label'       => __( 'Content types to import', 'axe-import' ),
+					'description' => '',
+					'type'        => 'checkbox_multi',
+					'options'     => $types,
+					'default'     => array_keys( $types ),
+				),
 			),
+
 		);
 
 		$settings = apply_filters( $this->parent->_token . '_settings_fields', $settings );
@@ -333,20 +350,20 @@ class Axe_Import_Settings {
 			$html .= '</h2>' . "\n";
 		}
 
-			$html .= '<form method="post" action="options.php" enctype="multipart/form-data">' . "\n";
+		$html .= '<form method="post" action="options.php" enctype="multipart/form-data">' . "\n";
 
-				// Get settings fields.
-				ob_start();
-				settings_fields( $this->parent->_token . '_settings' );
-				do_settings_sections( $this->parent->_token . '_settings' );
-				$html .= ob_get_clean();
+		// Get settings fields.
+		ob_start();
+		settings_fields( $this->parent->_token . '_settings' );
+		do_settings_sections( $this->parent->_token . '_settings' );
+		$html .= ob_get_clean();
 
-				$html     .= '<p class="submit">' . "\n";
-					$html .= '<input type="hidden" name="tab" value="' . esc_attr( $tab ) . '" />' . "\n";
-					$html .= '<input name="Submit" type="submit" class="button-primary" value="' . esc_attr( __( 'Save Settings', 'axe-import' ) ) . '" />' . "\n";
-				$html     .= '</p>' . "\n";
-			$html         .= '</form>' . "\n";
-		$html             .= '</div>' . "\n";
+		$html .= '<p class="submit">' . "\n";
+		$html .= '<input type="hidden" name="tab" value="' . esc_attr( $tab ) . '" />' . "\n";
+		$html .= '<input name="Submit" type="submit" class="button-primary" value="' . esc_attr( __( 'Save Settings', 'axe-import' ) ) . '" />' . "\n";
+		$html .= '</p>' . "\n";
+		$html .= '</form>' . "\n";
+		$html .= '</div>' . "\n";
 
 		echo $html; //phpcs:ignore
 	}

@@ -1,0 +1,32 @@
+.row {
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.row-wrap {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.second-col {
+    margin-left: 10px;
+}
+
+.entry-content-text {
+    margin-left: 10px;
+}
+
+.block {
+    display: flex;
+    flex-flow: row nowrap;
+    flex: 1 1 33.3333%;
+    margin-right: 10px;
+    &-content {
+        display: flex;
+        flex-flow: column nowrap;
+        padding-left: 10px;
+    }
+    &-image{
+        flex: 0 0 25%;
+    }
+}

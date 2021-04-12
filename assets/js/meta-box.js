@@ -81,7 +81,8 @@ var _metabox_fields = {
                 action: 'axe_get_posts',
                 q: params.term,
                 post_type:  $(this).attr('data-post-type'),
-                page: params.page
+                page: params.page,
+                axe_import_metabox_nonce: $('#axe_import_metabox_nonce').val()
               }
               return query;
             },

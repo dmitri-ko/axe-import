@@ -42,7 +42,7 @@ class Axe_Import_Admin_API {
 		add_action( 'pmxi_saved_post', array( $this, 'convert_repeater_data' ), 10, 3 );
 		add_action( 'pmxi_before_xml_import', array( $this, 'pmxi_before_xml_import' ), 10, 1 );
 		add_filter( 'update_post_metadata', array( $this, 'delete_empty_meta' ), 10, 5 );
-		add_filter( 'wp_all_import_is_post_to_create', array( $this, 'skip_unknown_posts' ), 10, 3 );
+		add_filter( 'wp_all_import_is_post_to_create', array( $this, 'skip_posts' ), 10, 3 );
 		add_filter( 'wpallimport_xml_row', array( $this, 'convert_data_before_import' ), 10, 1 );
 		add_filter( 'pmxi_custom_field', array( $this, 'keep_existing_if_empty' ), 10, 6 );
 		add_action( 'before_delete_post', array( $this, 'delete_cascade' ), 10, 2 );
@@ -54,6 +54,10 @@ class Axe_Import_Admin_API {
 		add_action( 'admin_footer-edit.php', array( $this, 'delete_alert' ), 10 );
 		add_action( 'admin_footer-post.php', array( $this, 'delete_alert' ), 10 );
 		add_action( 'transition_post_status', array( $this, 'change_status_cascade' ), 10, 3 );
+		add_filter( 'manage_axe_exhibition_posts_columns', array( $this, 'add_featured_column' ), 10, 1 );
+		add_action( 'manage_axe_exhibition_posts_custom_column', array( $this, 'featured_column' ), 10, 2 );
+		add_action( 'quick_edit_custom_box', array( $this, 'featured_column_quick_edit' ), 10, 2 );
+		add_action( 'save_post', array( $this, 'save_edit_data' ), 10, 1 );
 
 		// Define the add-on.
 		$this->add_on = new RapidAddon( 'Axe Import Add-On', 'axe-import_addon' );
@@ -104,8 +108,17 @@ class Axe_Import_Admin_API {
 
 		$this->add_on->add_options(
 			null,
+			__( 'Group Settings', 'axe-import' ),
+			array(
+				$this->add_on->add_field( '_level', __( 'Map marker level', 'axe-import' ), 'text' ),
+			)
+		);
+
+		$this->add_on->add_options(
+			null,
 			__( 'Exhibition Settings', 'axe-import' ),
 			array(
+				$this->add_on->add_field( '_headerID', __( 'Exhibition image', 'axe-import' ), 'text' ),
 				$this->add_on->add_field( '_start', __( 'Exhibition Starts', 'axe-import' ), 'text' ),
 				$this->add_on->add_field( '_end', __( 'Exhibition Ends', 'axe-import' ), 'text' ),
 			)
@@ -382,7 +395,7 @@ class Axe_Import_Admin_API {
 		$return['items'] = array();
 
 		if ( ! isset( $_REQUEST['axe_import_metabox_nonce'] )
-		|| ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['axe_import_metabox_nonce'] ) ), basename( __FILE__ ) )
+		|| ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['axe_import_metabox_nonce'] ) ), 'class-axe-import-metabox.php' )
 		) {
 			$return['items'][] = array( 'text' => __( 'Sorry, your nonce did not verify', 'axe-import' ) );
 		} else {
@@ -426,6 +439,14 @@ class Axe_Import_Admin_API {
 						$meta        = get_post_meta( $post->ID );
 						$item['url'] = get_edit_post_link( $post->ID );
 						if ( $meta ) {
+							if ( array_key_exists( 'headerID', $meta ) && is_array( $meta['headerID'] ) && isset( $meta['headerID'][0] ) ) {
+								$img_post_id = $this->get_post_id_by_meta_key_and_value( '_id', $meta['headerID'][0] );
+								$img_meta    = get_post_meta( $img_post_id, '_imageID' );
+								if ( $img_meta && is_array( $img_meta ) && isset( $img_meta[0] ) ) {
+									$img_id        = self::get_post_id_by_meta_key_and_value( '_id', $img_meta[0] );
+									$item['thumb'] = get_the_post_thumbnail_url( $img_id, 'thumbnail' );
+								}
+							}
 							if ( array_key_exists( 'imageID', $meta ) && is_array( $meta['imageID'] ) && isset( $meta['imageID'][0] ) ) {
 								$img_id        = $this->get_post_id_by_meta_key_and_value( '_id', $meta['imageID'][0] );
 								$item['thumb'] = get_the_post_thumbnail_url( $img_id, 'thumbnail' );
@@ -460,13 +481,25 @@ class Axe_Import_Admin_API {
 			$return['content'] = __( 'Sorry, your nonce did not verify', 'axe-import' );
 			$retutn['status']  = 'error';
 		} else {
-			$type               = isset( $_REQUEST['form'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['form'] ) ) : 'default';
+			$dialog_type = isset( $_REQUEST['form'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['form'] ) ) : 'default';
+			switch ( $dialog_type ) {
+				case 'green':
+					$action = __( 'restore', 'axe-import' );
+					break;
+				case 'purple':
+					$action = __( 'change', 'axe-import' );
+					break;
+				default:
+					$action = __( 'delete', 'axe-import' );
+					break;
+			}
 			$return['content'] .= sprintf(
 				'<form action="" class="form-%s">' .
 				'<div class="form-group">' .
-				'<label class="form-head">%s</label>',
-				$type,
-				__( 'Please select which associated content to delete:', 'axe-import' )
+				'<label class="form-head">%s %s:</label>',
+				$dialog_type,
+				__( 'Please select which associated content to ', 'axe-import' ),
+				$action
 			);
 
 			$return['content'] .= wp_nonce_field( 'axe-actions', 'axe_action_nonce', true, false );
@@ -478,13 +511,34 @@ class Axe_Import_Admin_API {
 				$return['content'] .= sprintf(
 					'<div class="form-check">' .
 					'<input class="form-check-input" type="checkbox" id="%s" name="%s" checked>' .
-					'<label class="form-check-label" for="groups">%s</label>' .
+					'<label class="form-check-label" for="%s">%s</label>' .
 					'</div>',
+					$post_type->name,
 					$post_type->name,
 					$post_type->name,
 					$post_type->labels->name
 				);
 			}
+			if ( 'red' === $dialog_type ) {
+				$return['content'] .= sprintf(
+					'<div class="form-group-delete">' .
+					'<label class="form-head">%s:</label>' .
+					'<div class="form-check">' .
+					'<input class="form-check-input" type="radio" id="keep" name="hold_images" value = "keep" checked>' .
+					'<label class="form-check-label" for="keep">%s</label>' .
+					'</div>' .
+					'<div class="form-check">' .
+					'<input class="form-check-input" type="radio" id="delete" name="hold_images" value = "delete">' .
+					'<label class="form-check-label" for="keep">%s</label>' .
+					'</div>' .
+					'</div>',
+					__( 'What do you want to do with images which are referenced from the other exhibitions?', 'axe-import' ),
+					__( 'Keep', 'axe-import' ),
+					__( 'Delete', 'axe-import' )
+				);
+
+			}
+
 			$return['content'] .= '</div>' .
 			'</form>';
 			$return['status']   = 'ok';
@@ -794,18 +848,23 @@ class Axe_Import_Admin_API {
 	}
 
 	/**
-	 * Skip unknown post type
+	 * Skip posts which are not needed
 	 *
 	 * @param bool  $continue_import if import should continue.
 	 * @param array $data current data to check.
 	 * @param int   $import_id import ID.
 	 * @return bool
 	 */
-	public function skip_unknown_posts( $continue_import, $data, $import_id ) {
+	public function skip_posts( $continue_import, $data, $import_id ) {
 
-		$this->logger( __( 'Unsupported post type. Row skipped', 'axe-import' ) );
+		$post_types_to_import = get_option( 'axe_import_types' );
 
 		if ( array_key_exists( 'post_type', $data ) && 'unknown' === $data['post_type'] ) {
+			$this->logger( __( 'Unsupported post type. Row skipped', 'axe-import' ) );
+			return false;
+		} elseif ( array_key_exists( 'post_type', $data ) && $post_types_to_import
+		&& ! in_array( $data['post_type'], $post_types_to_import, true ) ) {
+			$this->logger( __( 'Post type excluded from import by settings. Row skipped', 'axe-import' ) );
 			return false;
 		} else {
 			return true;
@@ -892,6 +951,8 @@ class Axe_Import_Admin_API {
 			'_year',
 			'_artistID',
 			'_owner',
+			'_level',
+			'_headerID',
 			'_start',
 			'_end',
 			'_width',
@@ -901,10 +962,10 @@ class Axe_Import_Admin_API {
 		);
 
 		foreach ( $properties as $property ) {
-			if ( $this->add_on->can_update_meta( $property, $import_options ) && ! empty( $data[ $property ] ) ) {
+			if ( $this->add_on->can_update_meta( $property, $import_options ) && isset( $data[ $property ] ) ) {
 				update_post_meta( $post_id, $property, $data[ $property ] );
 				// translators: key and value to log.
-				$this->logger( sprintf( __( 'Assigned value %s to property %', 'axe-import' ), $data[ $property ], $property ) );
+				$this->logger( sprintf( __( 'Assigned value %1$s to property %2$s', 'axe-import' ), $data[ $property ], $property ) );
 			}
 		}
 	}
@@ -942,13 +1003,6 @@ class Axe_Import_Admin_API {
 	 */
 	public function untrash_cascade( $post_id ) {
 
-		if ( isset( $_REQUEST['axe-action-nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['axe-action-nonce'] ) ), 'axe-actions' ) ) {
-			$this->post_type_filter['axe_group']   = isset( $_REQUEST['groups'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['groups'] ) ) ? false : true;
-			$this->post_type_filter['axe_artwork'] = isset( $_REQUEST['artworks'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artworks'] ) ) ? false : true;
-			$this->post_type_filter['axe_artist']  = isset( $_REQUEST['artists'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artists'] ) ) ? false : true;
-			$this->post_type_filter['axe_infos']   = isset( $_REQUEST['infos'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['infos'] ) ) ? false : true;
-			$this->post_type_filter['axe_image']   = isset( $_REQUEST['images'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['images'] ) ) ? false : true;
-		}
 		$post_type = get_post_type( $post_id );
 		if ( 'axe_exhibition' === $post_type && $this->is_action_needed( $post_id, 'restore', false ) ) {
 			$this->move_cascade( $post_id, 'restore', false );
@@ -965,7 +1019,7 @@ class Axe_Import_Admin_API {
 	 */
 	public function change_status_cascade( $new_status, $old_status, $post ) {
 
-		if ( isset( $_REQUEST['axe-action-nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['axe-action-nonce'] ) ), 'axe-actions' ) ) {
+		if ( isset( $_REQUEST['axe_action_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['axe_action_nonce'] ) ), 'axe-actions' ) ) {
 			$this->post_type_filter['axe_group']   = isset( $_REQUEST['groups'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['groups'] ) ) ? false : true;
 			$this->post_type_filter['axe_artwork'] = isset( $_REQUEST['artworks'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artworks'] ) ) ? false : true;
 			$this->post_type_filter['axe_artist']  = isset( $_REQUEST['artists'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artists'] ) ) ? false : true;
@@ -978,6 +1032,7 @@ class Axe_Import_Admin_API {
 			$post->post_status = $new_status;
 			wp_update_post( $post );
 		}
+
 		$post_type = $post->post_type;
 
 		if ( 'axe_exhibition' === $post_type ) {
@@ -1009,13 +1064,6 @@ class Axe_Import_Admin_API {
 	 * @return void
 	 */
 	public function trash_cascade( $post_id ) {
-		if ( isset( $_REQUEST['axe-action-nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['axe-action-nonce'] ) ), 'axe-actions' ) ) {
-			$this->post_type_filter['axe_group']   = isset( $_REQUEST['groups'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['groups'] ) ) ? false : true;
-			$this->post_type_filter['axe_artwork'] = isset( $_REQUEST['artworks'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artworks'] ) ) ? false : true;
-			$this->post_type_filter['axe_artist']  = isset( $_REQUEST['artists'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artists'] ) ) ? false : true;
-			$this->post_type_filter['axe_infos']   = isset( $_REQUEST['infos'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['infos'] ) ) ? false : true;
-			$this->post_type_filter['axe_image']   = isset( $_REQUEST['images'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['images'] ) ) ? false : true;
-		}
 		$post_type = get_post_type( $post_id );
 		if ( 'axe_exhibition' === $post_type && $this->is_action_needed( $post_id, 'delete', true ) ) {
 			$this->move_cascade( $post_id, 'delete', true );
@@ -1030,14 +1078,6 @@ class Axe_Import_Admin_API {
 	 * @return void
 	 */
 	public function delete_cascade( $post_id, $post ) {
-
-		if ( isset( $_REQUEST['axe-action-nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['axe-action-nonce'] ) ), 'axe-actions' ) ) {
-			$this->post_type_filter['axe_group']   = isset( $_REQUEST['groups'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['groups'] ) ) ? false : true;
-			$this->post_type_filter['axe_artwork'] = isset( $_REQUEST['artworks'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artworks'] ) ) ? false : true;
-			$this->post_type_filter['axe_artist']  = isset( $_REQUEST['artists'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artists'] ) ) ? false : true;
-			$this->post_type_filter['axe_infos']   = isset( $_REQUEST['infos'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['infos'] ) ) ? false : true;
-			$this->post_type_filter['axe_image']   = isset( $_REQUEST['images'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['images'] ) ) ? false : true;
-		}
 
 		$post_type = get_post_type( $post_id );
 		if ( 'axe_exhibition' === $post_type && $this->is_action_needed( $post_id, 'delete', false ) ) {
@@ -1054,17 +1094,48 @@ class Axe_Import_Admin_API {
 	 * @return void
 	 */
 	public function move_cascade( $id, $direction, $trash ) {
+		$is_keep_images = false;
+		if ( isset( $_REQUEST['axe_action_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['axe_action_nonce'] ) ), 'axe-actions' ) ) {
+			$this->post_type_filter['axe_group']   = isset( $_REQUEST['groups'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['groups'] ) ) ? false : true;
+			$this->post_type_filter['axe_artwork'] = isset( $_REQUEST['artworks'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artworks'] ) ) ? false : true;
+			$this->post_type_filter['axe_artist']  = isset( $_REQUEST['artists'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['artists'] ) ) ? false : true;
+			$this->post_type_filter['axe_infos']   = isset( $_REQUEST['infos'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['infos'] ) ) ? false : true;
+			$this->post_type_filter['axe_image']   = isset( $_REQUEST['images'] ) && 'false' === sanitize_text_field( wp_unslash( $_REQUEST['images'] ) ) ? false : true;
+
+			$is_keep_images = isset( $_REQUEST['rel_images'] ) && 'keep' === sanitize_text_field( wp_unslash( $_REQUEST['rel_images'] ) ) ? true : false;
+		}
 
 		$meta = get_post_meta( $id, '_uid' );
 		if ( $meta && is_array( $meta ) && isset( $meta[0] ) ) {
-			$meta = $meta[0];
+			$uid = $meta[0];
 		}
-		$posts = $this->get_posts_by_meta_key_and_value( '_uid', $meta );
+		$posts = $this->get_posts_by_meta_key_and_value( '_uid', $uid );
 		foreach ( $posts as $post_id ) {
 			if ( strval( $id ) !== $post_id ) {
 				$post_type = get_post_type( $post_id );
 				if ( ! isset( $this->post_type_filter[ $post_type ] ) || $this->post_type_filter[ $post_type ] ) {
-					$this->move_post( $post_id, $direction, $trash );
+					$is_move_post = true;
+					if ( 'axe_image' === $post_type && $is_keep_images && 'delete' === $direction ) {
+						$meta = get_post_meta( $post_id, '_id' );
+						if ( $meta && is_array( $meta ) && isset( $meta[0] ) ) {
+							$image_id = $meta[0];
+						}
+						$image_parents = self::get_posts_by_meta_key_and_value( '_imageID', $image_id );
+						foreach ( $image_parents as $parent_id ) {
+							$meta = get_post_meta( $parent_id, '_uid' );
+							if ( $meta && is_array( $meta ) && isset( $meta[0] ) ) {
+								$parent_uid = $meta[0];
+							}
+
+							if ( $uid !== $parent_uid ) {
+								$is_move_post = false;
+								break;
+							}
+						}
+					}
+					if ( $is_move_post ) {
+						$this->move_post( $post_id, $direction, $trash );
+					}
 				}
 			}
 		}
@@ -1161,7 +1232,7 @@ class Axe_Import_Admin_API {
 				echo wp_kses( $button, $allowed_html );
 			} else {
 				$this->add_on->admin_notice(
-					// translators: the name of import.
+				// translators: the name of import.
 					sprintf( __( 'Could not find any import with the name %s. Please create an import using Wp All Import menu.', 'axe-import' ), $import_name )
 				);
 			}
@@ -1267,12 +1338,14 @@ class Axe_Import_Admin_API {
 										var infos = this.$content.find('#axe_infos').is(':checked');
 										var images = this.$content.find('#axe_image').is(':checked');	
 										var nonce = this.$content.find('#axe_action_nonce').val();
+										var rel_images = $('input[name="hold_images"]:checked').val();
 
 										location.href = href + '&groups=' + groups
 														+ '&artworks=' + artworks
 														+ '&artists=' + artists
 														+ '&infos=' + infos
 														+ '&images=' + images
+														+ '&rel_images=' + rel_images 
 														+ '&axe_action_nonce=' + nonce;
 									}
 								},
@@ -1343,6 +1416,11 @@ class Axe_Import_Admin_API {
 													.attr('value', this.$content.find('#axe_image').is(':checked'))
 													.appendTo('#posts-filter');
 
+													$('<input />').attr('type', 'hidden')
+													.attr('name', 'rel_images')
+													.attr('value', $('input[name="hold_images"]:checked').val())
+													.appendTo('#posts-filter');
+
 													$('#posts-filter').submit();
 											}
 										},
@@ -1393,12 +1471,14 @@ class Axe_Import_Admin_API {
 										var infos = this.$content.find('#axe_infos').is(':checked');
 										var images = this.$content.find('#axe_image').is(':checked');	
 										var nonce = this.$content.find('#axe_action_nonce').val();
+										var rel_images = $('input[name="hold_images"]:checked').val();
 
 										location.href = href + '&groups=' + groups
 														+ '&artworks=' + artworks
 														+ '&artists=' + artists
 														+ '&infos=' + infos
 														+ '&images=' + images
+														+ '&rel_images=' + rel_images 
 														+ '&axe_action_nonce=' + nonce;
 									}
 								},
@@ -1465,6 +1545,11 @@ class Axe_Import_Admin_API {
 													$('<input />').attr('type', 'hidden')
 													.attr('name', 'images')
 													.attr('value', this.$content.find('#axe_image').is(':checked'))
+													.appendTo('#posts-filter');
+
+													$('<input />').attr('type', 'hidden')
+													.attr('name', 'rel_images')
+													.attr('value', $('input[name="hold_images"]:checked').val())
 													.appendTo('#posts-filter');
 
 													$('#posts-filter').submit();
@@ -1534,7 +1619,12 @@ class Axe_Import_Admin_API {
 											$('<input />').attr('type', 'hidden')
 												.attr('name', 'images')
 												.attr('value', this.$content.find('#axe_image').is(':checked'))
-												.appendTo('#post#publish');
+												.appendTo('#post');
+
+											$('<input />').attr('type', 'hidden')
+												.attr('name', 'rel_images')
+												.attr('value', $('input[name="hold_images"]:checked').val())
+												.appendTo('#post');	
 
 											$('#post').submit();
 										}
@@ -1554,4 +1644,103 @@ class Axe_Import_Admin_API {
 		}
 		return true;
 	}
+
+	/**
+	 * Add featured post column to exhibition posts admin
+	 *
+	 * @param array $columns post columns.
+	 * @return array
+	 */
+	public function add_featured_column( $columns ) {
+		$columns['is_featured'] = __( 'Is featured?', 'axe-import' );
+		return $columns;
+	}
+
+	/**
+	 * Fill is featured exhibition column
+	 *
+	 * @param string $column post column name.
+	 * @param int    $post_id post ID.
+	 * @return void
+	 */
+	public function featured_column( $column, $post_id ) {
+		if ( 'is_featured' === $column ) {
+			$is_featured = get_post_meta( $post_id, '_featured', true );
+			if ( $is_featured ) {
+				$is_featured = 'on' === $is_featured ? 'checked' : '';
+			} else {
+				$is_featured = '';
+			}
+
+			printf( '<input type="checkbox" name="is_featured" disabled %1$s/>', esc_attr( $is_featured ) );
+
+		}
+	}
+
+	/**
+	 * Add featured column to quick edit
+	 *
+	 * @param string $column_name column name.
+	 * @param string $post_type post type.
+	 * @return void
+	 */
+	public function featured_column_quick_edit( $column_name, $post_type ) {
+		if ( 'is_featured' !== $column_name ) {
+			return;
+		}
+		wp_nonce_field( 'axe_exhibition_quick_edit', 'axe_featured_noncename' );
+		printf(
+			'<fieldset class="inline-edit-col-left">
+					<div class="inline-edit-col">
+					<label class="alignleft inline-edit-private">
+							<input type="checkbox" name="_featured" id="_featured"/>
+							<span class="checkbox-title">%1$s</span>
+					</label>
+					</div>
+			    </fieldset>',
+			esc_html__( 'Is featured?', 'axe-import' )
+		);
+	}
+
+	/**
+	 * Save edit data to custom fields
+	 *
+	 * @param int $post_id the post id.
+	 * @return int
+	 */
+	public function save_edit_data( $post_id ) {
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return $post_id;
+		}
+		if ( isset( $_REQUEST['axe_featured_noncename'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['axe_featured_noncename'] ) ), 'axe_exhibition_quick_edit' ) ) {
+			// Check permissions.
+			if ( isset( $_POST['post_type'] ) && 'page' === $_POST['post_type'] ) {
+				if ( ! current_user_can( 'edit_page', $post_id ) ) {
+					return $post_id;
+				}
+			} else {
+				if ( ! current_user_can( 'edit_post', $post_id ) ) {
+					return $post_id;
+				}
+			}
+
+			$post        = get_post( $post_id );
+			$is_featured = false;
+			if ( 'revision' !== $post->post_type ) {
+				$is_featured = isset( $_POST['_featured'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['_featured'] ) ) ) : false;
+				if ( $is_featured ) {
+					$featured_posts = self::get_posts_by_meta_key_and_value( '_featured', 'on' );
+					foreach ( $featured_posts  as $fpost_id ) {
+						delete_post_meta( $fpost_id, '_featured' );
+					}
+					update_post_meta( $post_id, '_featured', $is_featured );
+
+				} else {
+					delete_post_meta( $post_id, '_featured' );
+				}
+			}
+			return $is_featured;
+		}
+	}
+
 }
